@@ -1,6 +1,6 @@
-import { EUserType } from 'src/constants';
+import { UserRole } from 'src/constants';
 
 export interface IAuthPermission {
-  userType: EUserType;
+  userType: UserRole;
   permission?: string;
 }

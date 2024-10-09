@@ -1,22 +1,121 @@
-import { Column, Model, Table } from 'sequelize-typescript';
+import {
+  BelongsTo,
+  BelongsToMany,
+  Column,
+  DataType,
+  Default,
+  ForeignKey,
+  HasMany,
+  Model,
+  Table,
+} from 'sequelize-typescript';
+import { UserRole } from 'src/constants';
+
+import {
+  Rank,
+  Reward,
+  Store,
+  StoreUser,
+  Transaction,
+  UserPointsHistory,
+  UserRankHistory,
+  UserReward,
+} from './index';
 
 @Table({
   tableName: 'users',
   underscored: true,
+  timestamps: true,
+  paranoid: true,
 })
 export class User extends Model {
-  @Column
-  firstName: string;
+  @Column({
+    type: DataType.UUID,
+    defaultValue: DataType.UUIDV4,
+    primaryKey: true,
+  })
+  id: string;
 
-  @Column
-  lastName: string;
+  @Default(UserRole.USER)
+  @Column({
+    type: DataType.ENUM(...Object.values(UserRole)),
+    allowNull: false,
+  })
+  role: UserRole;
 
-  @Column
-  email: string;
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+  })
+  username: string;
 
-  @Column
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+  })
   password: string;
 
-  @Column({ defaultValue: false })
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+    unique: true,
+  })
+  email: string;
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+    unique: true,
+  })
+  phoneNumber: string;
+
+  @ForeignKey(() => Rank)
+  @Column({
+    type: DataType.UUID,
+  })
+  rankId: string;
+
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
   isActive: boolean;
+
+  @Column({
+    type: DataType.STRING(255),
+  })
+  firstName: string;
+
+  @Column({
+    type: DataType.STRING(255),
+  })
+  lastName: string;
+
+  @Column({
+    type: DataType.STRING(255),
+  })
+  otpCode: string;
+
+  @Column({
+    type: DataType.DATE,
+  })
+  expiredAt: Date;
+
+  @BelongsTo(() => Rank)
+  rank: Rank;
+
+  @BelongsToMany(() => Store, () => StoreUser)
+  stores: Store[];
+
+  @BelongsToMany(() => Reward, () => UserReward)
+  rewards: Reward[];
+
+  @HasMany(() => UserRankHistory)
+  rankHistories: UserRankHistory[];
+
+  @HasMany(() => UserPointsHistory)
+  pointsHistory: UserPointsHistory[];
+
+  @HasMany(() => Transaction)
+  transactions: Transaction[];
 }
