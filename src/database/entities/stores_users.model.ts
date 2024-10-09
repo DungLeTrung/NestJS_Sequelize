@@ -14,22 +14,26 @@ import { User } from './users.model';
   tableName: 'store_users',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class StoreUser extends Model {
+  @Column({
+    primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
+  })
+  id: number;
+
   @ForeignKey(() => Store)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  storeId: string;
+  storeId: number;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  userId: string;
+  userId: number;
 
   @BelongsTo(() => Store)
   stores: Store;

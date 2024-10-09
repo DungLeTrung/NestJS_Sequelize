@@ -18,22 +18,21 @@ import { UserReward } from './users_rewards.model';
   tableName: 'rewards',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class Reward extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @ForeignKey(() => Store)
   @Column({
-    type: DataType.UUID,
+    type: DataType.INTEGER,
     allowNull: false,
   })
-  storeId: string;
+  storeId: number;
 
   @Column({
     type: DataType.STRING(255),

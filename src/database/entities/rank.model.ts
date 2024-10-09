@@ -1,6 +1,6 @@
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 
-import { User } from './index'; 
+import { User } from './index';
 
 @Table({
   tableName: 'ranks',
@@ -9,11 +9,11 @@ import { User } from './index';
 })
 export class Rank extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @Column({
     type: DataType.STRING(50),

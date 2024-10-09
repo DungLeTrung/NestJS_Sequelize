@@ -10,22 +10,21 @@ import {
 
 import { Reward } from './reward.model';
 import { StoreUser } from './stores_users.model';
-import { User } from './users.model';
 import { Transaction } from './transaction.model';
+import { User } from './users.model';
 
 @Table({
   tableName: 'stores',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class Store extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @Column({
     type: DataType.STRING(255),

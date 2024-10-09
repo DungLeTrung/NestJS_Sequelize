@@ -17,18 +17,17 @@ import { User } from './users.model';
 })
 export class UserPointsHistory extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
+    autoIncrement: true,
     primaryKey: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  userId: string;
+  userId: number;
 
   @Column({
     type: DataType.INTEGER,
@@ -38,10 +37,9 @@ export class UserPointsHistory extends Model {
 
   @ForeignKey(() => Transaction)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  transactionId: string;
+  transactionId: number;
 
   @BelongsTo(() => User)
   users: User;

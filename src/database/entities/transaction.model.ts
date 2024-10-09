@@ -21,25 +21,23 @@ import { UserPointsHistory } from './users_points_history.model';
 })
 export class Transaction extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  userId: string;
+  userId: number;
 
   @ForeignKey(() => Store)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  storeId: string;
+  storeId: number;
 
   @Column({
     type: DataType.DECIMAL(10, 2),

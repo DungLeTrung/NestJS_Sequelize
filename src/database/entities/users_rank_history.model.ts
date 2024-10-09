@@ -13,22 +13,20 @@ import { User } from './users.model';
   tableName: 'user_rank_history',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class UserRankHistory extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  userId: string;
+  userId: number;
 
   @Column({
     type: DataType.STRING(50),

@@ -26,15 +26,14 @@ import {
   tableName: 'users',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class User extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true, 
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @Default(UserRole.USER)
   @Column({
@@ -71,9 +70,9 @@ export class User extends Model {
 
   @ForeignKey(() => Rank)
   @Column({
-    type: DataType.UUID,
+    type: DataType.INTEGER,
   })
-  rankId: string;
+  rankId: number;
 
   @Default(false)
   @Column({

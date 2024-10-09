@@ -13,26 +13,36 @@ import { Transaction } from './transaction.model';
   tableName: 'transaction_rewards',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class TransactionReward extends Model {
+  @Column({
+    primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
+  })
+  id: number;
+
   @ForeignKey(() => Transaction)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  transactionId: string;
+  transactionId: number;
 
   @ForeignKey(() => Reward)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  rewardId: string;
+  rewardId: number;
 
   @Column({
     type: DataType.STRING(255),
     allowNull: false,
   })
   rewardName: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  rewardPoint: number;
 }

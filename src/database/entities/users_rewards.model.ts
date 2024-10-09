@@ -13,35 +13,38 @@ import { User } from './users.model';
   tableName: 'user_rewards',
   underscored: true,
   timestamps: true,
-  paranoid: true,
 })
 export class UserReward extends Model {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
     primaryKey: true,
+    autoIncrement: true,
+    type: DataType.INTEGER,
   })
-  id: string;
+  id: number;
 
   @ForeignKey(() => User)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  userId: string;
+  userId: number;
 
   @ForeignKey(() => Reward)
   @Column({
-    type: DataType.UUID,
-    allowNull: false,
+    type: DataType.INTEGER,
   })
-  rewardId: string;
-  
+  rewardId: number;
+
   @Column({
     type: DataType.STRING(255),
     allowNull: false,
   })
   rewardName: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  rewardPoint: number;
 
   @Column({
     type: DataType.DATE,
