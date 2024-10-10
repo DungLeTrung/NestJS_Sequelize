@@ -1,7 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { UserRole } from 'src/constants';
 import { Store } from 'src/database';
+import { Roles } from 'src/utils/decorators/customize';
 
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 import { SendOtpDto } from './dto/send_otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -39,8 +42,8 @@ export class StoresController {
   }
 
   @ApiOperation({ summary: 'API Approve Store' })
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
   @Post('approve-store')
   async approveStore(@Body('id') id: string): Promise<Store> {
     return this.storesService.approveStore(id);
