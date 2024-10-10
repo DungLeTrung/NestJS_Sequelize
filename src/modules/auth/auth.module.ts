@@ -1,16 +1,22 @@
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/database';
-
-import { TwilioModule } from '../twilio/twilio.module';
+import { MailProcessor } from 'src/utils/mail/mail.processor';
+import { MailService } from 'src/utils/mail/mail.service';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]), TwilioModule],
+  imports: [
+    SequelizeModule.forFeature([User]),
+    BullModule.registerQueue({
+      name: 'mail',
+    }),
+  ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService]
+  providers: [AuthService, MailService, MailProcessor],
+  exports: [AuthService, SequelizeModule],
 })
 export class AuthModule {}

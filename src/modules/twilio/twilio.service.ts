@@ -13,10 +13,12 @@ export class TwilioService {
 
   async sendSms(to: string, message: string): Promise<void> {
     try {
+      const formattedNumber = to.startsWith('+') ? to : `+84${to.replace(/^0/, '')}`;
+
       await this.client.messages.create({
         body: message,
         from: process.env.TWILIO_PHONE_NUMBER, 
-        to: to, 
+        to: formattedNumber, 
       });
     } catch (error) {
       console.error('Failed to send SMS:', error);

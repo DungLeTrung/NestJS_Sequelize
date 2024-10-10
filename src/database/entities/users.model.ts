@@ -121,6 +121,8 @@ export class User extends Model {
   toJSON() {
     const values = { ...this.get() };
     delete values.password; 
+    delete values.otpCode;
+    delete values.expiredAt;
     return values;
   }
 }
