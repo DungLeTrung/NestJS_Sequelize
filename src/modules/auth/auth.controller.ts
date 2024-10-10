@@ -1,11 +1,12 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { User } from 'src/database';
+import { Store, User } from 'src/database';
 import { ResponseMessage } from 'src/utils/decorators/customize';
 
 
 import { AuthService } from './auth.service';
 import { CreateAdminDto } from './dto/register-admin.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { RegisterStoreDto } from './dto/register-store.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,5 +22,10 @@ export class AuthController {
   @Post('register-user')
   async registerUser(@Body() registerDto: RegisterUserDto): Promise<User> {
     return this.authService.registerUser(registerDto);
+  }
+
+  @Post('register-store')
+  async registerStore(@Body() registerDto: RegisterStoreDto): Promise<Store> {
+    return this.authService.registerStore(registerDto);
   }
 }

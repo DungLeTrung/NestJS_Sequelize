@@ -1,7 +1,7 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { User } from 'src/database';
+import { Store, User } from 'src/database';
 import { MailProcessor } from 'src/utils/mail/mail.processor';
 import { MailService } from 'src/utils/mail/mail.service';
 
@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User]),
+    SequelizeModule.forFeature([User, Store]),
     BullModule.registerQueue({
       name: 'mail',
     }),
