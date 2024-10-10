@@ -1,5 +1,9 @@
 import { InjectQueue } from '@nestjs/bull';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
 import { Store } from 'src/database';
@@ -91,6 +95,29 @@ export class StoresService {
       return updatedUser;
     } catch (error) {
       throw new BadRequestException(`Failed to re-send OTP: ${error.message}`);
+    }
+  }
+
+  async approveStore(storeId: string): Promise<Store> {
+    try {
+      const store = await this.storeModel.findOne({ where: { id: storeId } });
+      if (!store) {
+        throw new NotFoundException('Store not found');
+      }
+
+      await this.storeModel.update(
+        { isApproved: true },
+        { where: { id: storeId } },
+      );
+
+      return  await this.storeModel.findOne({
+        where: { id: storeId },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to approve store: ${error.message}`,
+      );
     }
   }
 }

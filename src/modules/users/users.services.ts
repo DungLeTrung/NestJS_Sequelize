@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
 import { User } from 'src/database';
@@ -88,6 +88,18 @@ export class UsersService {
       return updatedUser;
     } catch (error) {
       throw new BadRequestException(`Failed to re-send OTP ${error.message}`);
+    }
+  }
+
+  async findById(id: string): Promise<User> {
+    try {
+      const user = await this.userModel.findOne({ where: { id } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      throw new BadRequestException('Can not find user', error.message);
     }
   }
 }

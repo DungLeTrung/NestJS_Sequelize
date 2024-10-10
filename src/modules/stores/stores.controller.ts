@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { Store } from 'src/database';
 
+
 import { SendOtpDto } from './dto/send_otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StoresService } from './stores.service';
@@ -35,5 +36,13 @@ export class StoresController {
   @Post('verify-otp')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto): Promise<Store> {
     return this.storesService.verifyOtp(verifyOtpDto);
+  }
+
+  @ApiOperation({ summary: 'API Approve Store' })
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(UserRole.ADMIN)
+  @Post('approve-store')
+  async approveStore(@Body('id') id: string): Promise<Store> {
+    return this.storesService.approveStore(id);
   }
 }
