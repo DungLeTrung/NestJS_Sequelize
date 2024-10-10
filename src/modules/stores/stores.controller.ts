@@ -1,43 +1,39 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { Store } from 'src/database';
 
-import { CreateStoreDto } from './dto/create-store.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
+import { SendOtpDto } from './dto/send_otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
-  @Post()
-  create(@Body() createStoreDto: CreateStoreDto) {
-    return this.storesService.create(createStoreDto);
+  @ApiOperation({ summary: 'API send OTP' })
+  @ApiBody({
+    type: SendOtpDto,
+    required: true,
+    description: 'Send OTP',
+  })
+  @Post('send-otp')
+  async sendOtp(@Body() sendOtpDto: SendOtpDto) {
+    const { email } = sendOtpDto;
+    const updatedUser = await this.storesService.sendOtp(email);
+    return {
+      message: 'OTP sent successfully',
+      data: updatedUser,
+    };
   }
 
-  @Get()
-  findAll() {
-    return this.storesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.storesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStoreDto: UpdateStoreDto) {
-    return this.storesService.update(+id, updateStoreDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.storesService.remove(+id);
+  @ApiOperation({ summary: 'API Verify OTP' })
+  @ApiBody({
+    type: SendOtpDto,
+    required: true,
+    description: 'Send OTP',
+  })
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto): Promise<Store> {
+    return this.storesService.verifyOtp(verifyOtpDto);
   }
 }

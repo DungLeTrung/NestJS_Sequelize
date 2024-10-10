@@ -1,10 +1,12 @@
-import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
+
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { useContainer } from 'class-validator';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import { engine } from 'express-handlebars'; // Import the engine function
 import morgan from 'morgan';
 
 import { AppModule } from './app.module';
@@ -41,7 +43,7 @@ async function bootstrap() {
 
   // swagger
   ENVS_ALLOW_DOCS.includes(application.environment) && swaggerConfig(app);
-
+  
   await app.listen(application.serverPort);
   console.log(`Application is running on ${application.serverPort}`);
 }

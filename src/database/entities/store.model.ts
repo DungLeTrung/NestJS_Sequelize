@@ -39,6 +39,12 @@ export class Store extends Model {
   })
   isApproved: boolean;
 
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  isActive: boolean;
+
   @Column({
     type: DataType.STRING(255),
     allowNull: false,
@@ -53,7 +59,7 @@ export class Store extends Model {
   password: string;
 
   @Column({
-    type: DataType.ARRAY(DataType.UUID),
+    type: DataType.ARRAY(DataType.INTEGER),
     allowNull: true,
   })
   rewards: string[];
@@ -62,7 +68,7 @@ export class Store extends Model {
     type: DataType.STRING(255),
     allowNull: true,
   })
-  otpCodes: string;
+  otpCode: string;
 
   @Column({
     type: DataType.DATE,

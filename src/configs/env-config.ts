@@ -57,7 +57,7 @@ export const emailSender = {
   secretKeySendGmail:
     process.env.SECRET_KEY_SEND_GMAIL || '57ec1978-ddad-48b6-8db7-88123a8da5c2',
   otpTimeExpire: +process.env.OTP_TIME_EXPIRE || 300,
-  email: process.env.ADMIN_EMAIL || 'example@adamosoft.com',
-  password: process.env.ADMIN_PASSWORD_EMAIL || 'abc+=123',
-  name: process.env.ADMIN_EMAIL_NAME || 'abc+=123',
+  email: process.env.EMAIL_USER || 'example@adamosoft.com',
+  password: process.env.EMAIL_PASS || 'abc+=123',
+  name: process.env.EMAIL_USER || 'abc+=123',
 };

@@ -1,27 +1,96 @@
-import { Injectable } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Queue } from 'bull';
+import { Store } from 'src/database';
+import { SendEmailHelper } from 'src/utils';
+import { generateOtpCode } from 'src/utils/otp/otp.util';
 
-import { CreateStoreDto } from './dto/create-store.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class StoresService {
-  create(createStoreDto: CreateStoreDto) {
-    return 'This action adds a new store';
+  constructor(
+    @InjectModel(Store) private storeModel: typeof Store,
+    @InjectQueue('mail') private emailQueue: Queue,
+  ) {}
+
+  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<Store> {
+    try {
+      const { email, otpCode } = verifyOtpDto;
+
+      const store = await this.storeModel.findOne({
+        where: { email },
+      });
+
+      if (!store) {
+        throw new BadRequestException('Store not found');
+      }
+
+      if (store.otpCode !== otpCode) {
+        throw new BadRequestException('Invalid OTP code');
+      }
+
+      if (new Date() > store.expiredAt) {
+        throw new BadRequestException('OTP code has expired');
+      }
+
+      store.isActive = true;
+      store.otpCode = null;
+      store.expiredAt = null;
+      await this.storeModel.update(
+        { isActive: true, otpCode: null, expiredAt: null },
+        { where: { email } },
+      );
+      return await this.storeModel.findOne({
+        where: { email },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+    } catch (error) {
+      throw new BadRequestException(`Failed to verify OTP: ${error.message}`);
+    }
   }
 
-  findAll() {
-    return `This action returns all stores`;
-  }
+  async sendOtp(email: string): Promise<Store> {
+    try {
+      const store = await this.storeModel.findOne({
+        where: { email },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
 
-  findOne(id: number) {
-    return `This action returns a #${id} store`;
-  }
+      if (!store) {
+        throw new BadRequestException('Store not found');
+      }
 
-  update(id: number, updateStoreDto: UpdateStoreDto) {
-    return `This action updates a #${id} store`;
-  }
+      if (store.isActive) {
+        throw new BadRequestException(
+          'Store is already active, no need to send OTP',
+        );
+      }
 
-  remove(id: number) {
-    return `This action removes a #${id} store`;
+      const { otpCode, expiredAt } = generateOtpCode();
+
+      store.otpCode = otpCode;
+      store.expiredAt = expiredAt;
+      await this.storeModel.update(
+        { otpCode, expiredAt },
+        { where: { email } },
+      );
+
+      const updatedUser = await this.storeModel.findOne({
+        where: { email },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+
+      await SendEmailHelper.sendOTP({
+        to: email,
+        subject: 'Your OTP Code',
+        OTP: otpCode,
+      });
+
+      return updatedUser;
+    } catch (error) {
+      throw new BadRequestException(`Failed to re-send OTP: ${error.message}`);
+    }
   }
 }
