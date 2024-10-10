@@ -24,10 +24,10 @@ export class AuthController {
     return this.authService.verifyOtp(verifyOtpDto);
   }
 
-  @Post('resend-otp')
-  @ResponseMessage('Re-send OTP')
+  @Post('send-otp')
+  @ResponseMessage('Send OTP')
   @HttpCode(201)
-  async resendOtp(@Body('email') email: string) {
-    return this.authService.resendOtp(email);
+  async sendOtp(@Body('email') email: string) {
+    return this.authService.sendOtp(email);
   }
 }

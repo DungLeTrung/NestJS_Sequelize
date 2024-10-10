@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
-import { addMinutes } from 'date-fns';
 import { Op } from 'sequelize';
 import { UserRole } from 'src/constants';
 import { User } from 'src/database';
+import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { TwilioService } from '../twilio/twilio.service';
 
@@ -25,7 +25,7 @@ export class AuthService {
 
       const existingUser = await this.userModel.findOne({
         where: {
-          [Op.or]: [{ email }, { phoneNumber }, {username}],
+          [Op.or]: [{ email }, { phoneNumber }, { username }],
         },
       });
 
@@ -83,7 +83,7 @@ export class AuthService {
     }
   }
 
-  async resendOtp(email: string): Promise<User> {
+  async sendOtp(email: string): Promise<User> {
     try {
       const user = await this.userModel.findOne({ where: { email } });
 
@@ -91,10 +91,7 @@ export class AuthService {
         throw new BadRequestException('User not found');
       }
 
-      const otpCode = Math.floor(10000 + Math.random() * 90000)
-        .toString()
-        .slice(-4);
-      const expiredAt = addMinutes(new Date(), 10);
+      const { otpCode, expiredAt } = generateOtpCode();
 
       user.otpCode = otpCode;
       user.expiredAt = expiredAt;
