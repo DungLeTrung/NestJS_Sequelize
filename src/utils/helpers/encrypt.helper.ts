@@ -4,7 +4,7 @@ export class EncryptHelper {
   static async hash(str, saltRounds = 10): Promise<string> {
     return await bcrypt.hash(str, saltRounds);
   }
-  static compare(str, hash): boolean {
-    return bcrypt.compare(str, hash);
+  static async compare(str, hash): Promise<boolean> {
+    return await bcrypt.compare(str, hash);
   }
 }

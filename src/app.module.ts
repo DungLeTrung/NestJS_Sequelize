@@ -26,6 +26,8 @@ import { UsersPointsHistoryModule } from './modules/users_points_history/users_p
 import { UsersRankHistoryModule } from './modules/users_rank_history/users_rank_history.module';
 import { UsersRewardsModule } from './modules/users_rewards/users_rewards.module';
 import { TransactionRewardsModule } from './modules/transaction_rewards/transaction_rewards.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { TwilioModule } from './modules/twilio/twilio.module';
 
 @Module({
   imports: [
@@ -40,7 +42,7 @@ import { TransactionRewardsModule } from './modules/transaction_rewards/transact
         username: process.env.POSTGRES_USERNAME,
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DATABASE,
-        synchronize: true,
+        synchronize: false,
         autoLoadModels: true,
         models: [
           User,
@@ -69,6 +71,8 @@ import { TransactionRewardsModule } from './modules/transaction_rewards/transact
     UsersPointsHistoryModule,
     TransactionModule,
     TransactionRewardsModule,
+    AuthModule,
+    TwilioModule
   ],
   controllers: [AppController],
   providers: [],
