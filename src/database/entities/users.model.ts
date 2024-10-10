@@ -117,4 +117,10 @@ export class User extends Model {
 
   @HasMany(() => Transaction)
   transactions: Transaction[];
+
+  toJSON() {
+    const values = { ...this.get() };
+    delete values.password; 
+    return values;
+  }
 }
