@@ -42,7 +42,7 @@ import { TwilioModule } from './modules/twilio/twilio.module';
         username: process.env.POSTGRES_USERNAME,
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DATABASE,
-        synchronize: true,
+        synchronize: false,
         autoLoadModels: true,
         models: [
           User,

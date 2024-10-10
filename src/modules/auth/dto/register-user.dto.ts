@@ -13,6 +13,7 @@ export class RegisterUserDto {
   @IsNotEmpty()
   phoneNumber: string;
 
+  @IsNotEmpty()
   @IsString()
   @MinLength(6)
   password: string;
