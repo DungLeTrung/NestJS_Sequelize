@@ -25,7 +25,7 @@ import { StoresModule } from './modules/stores/stores.module';
 import { StoresUsersModule } from './modules/stores_users/stores_users.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { TransactionRewardsModule } from './modules/transaction_rewards/transaction_rewards.module';
-import { TwilioModule } from './modules/twilio/twilio.module';
+import { TwilioModule } from './utils/twilio/twilio.module';
 import { UsersPointsHistoryModule } from './modules/users_points_history/users_points_history.module';
 import { UsersRankHistoryModule } from './modules/users_rank_history/users_rank_history.module';
 import { UsersRewardsModule } from './modules/users_rewards/users_rewards.module';
