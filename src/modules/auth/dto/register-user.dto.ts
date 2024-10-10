@@ -1,11 +1,13 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsPhoneNumber } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsPhoneNumber, MaxLength } from 'class-validator';
 
 export class RegisterUserDto {
   @IsString()
+  @MaxLength(20)
   @IsNotEmpty()
   username: string;
 
   @IsEmail()
+  @MaxLength(50)
   @IsNotEmpty()
   email: string;
 
@@ -19,10 +21,12 @@ export class RegisterUserDto {
   password: string;
 
   @IsString()
+  @MaxLength(20)
   @IsNotEmpty()
   firstName: string;
 
   @IsString()
+  @MaxLength(20)
   @IsNotEmpty()
   lastName: string;
 }
