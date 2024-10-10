@@ -41,11 +41,10 @@ export class UsersService {
         { isActive: true, otpCode: null, expiredAt: null },
         { where: { email } },
       );
-      const updatedUser = await this.userModel.findOne({
+      return await this.userModel.findOne({
         where: { email },
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
       });
-      return updatedUser;
     } catch (error) {
       throw new BadRequestException(`Failed to verify OTP: ${error.message}`);
     }
@@ -60,6 +59,10 @@ export class UsersService {
 
       if (!user) {
         throw new BadRequestException('User not found');
+      }
+
+      if (user.isActive) {
+        throw new BadRequestException('Account is already active, no need to send OTP');
       }
 
       const { otpCode, expiredAt } = generateOtpCode();

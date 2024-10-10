@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { from, password, username } from 'src/constants/enums/const';
 
 @Injectable()
 export class MailService {
@@ -9,8 +10,8 @@ export class MailService {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: username,
+        pass: password,
       },
     });
   }
@@ -18,7 +19,7 @@ export class MailService {
   async sendEmail(to: string, subject: string, text: string) {
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: from,
         to,
         subject,
         text,
