@@ -1,17 +1,17 @@
 import { InjectQueue } from '@nestjs/bull';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
 import { Queue } from 'bull';
 import { Op } from 'sequelize';
 import { UserRole } from 'src/constants';
 import { Store, User } from 'src/database';
+import { SendEmailHelper } from 'src/utils';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { CreateAdminDto } from './dto/register-admin.dto';
-import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterStoreDto } from './dto/register-store.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -85,10 +85,10 @@ export class AuthService {
         isActive: false,
       });
 
-      await this.emailQueue.add({
+      await SendEmailHelper.sendOTP({
         to: email,
         subject: 'Your OTP Code',
-        text: `Your OTP code is ${otpCode}`,
+        OTP: otpCode,
       });
 
       return await this.userModel.findOne({
@@ -130,10 +130,10 @@ export class AuthService {
         isActive: false
       });
 
-      await this.emailQueue.add({
+      await SendEmailHelper.sendOTP({
         to: email,
-        subject: 'Store OTP Code',
-        text: `Store OTP code is ${otpCode}`,
+        subject: 'Your OTP Code',
+        OTP: otpCode,
       });
 
       return await this.storeModel.findOne({

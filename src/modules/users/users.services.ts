@@ -3,6 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
 import { User } from 'src/database';
+import { SendEmailHelper } from 'src/utils';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -62,7 +63,9 @@ export class UsersService {
       }
 
       if (user.isActive) {
-        throw new BadRequestException('Account is already active, no need to send OTP');
+        throw new BadRequestException(
+          'Account is already active, no need to send OTP',
+        );
       }
 
       const { otpCode, expiredAt } = generateOtpCode();
@@ -76,10 +79,10 @@ export class UsersService {
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
       });
 
-      await this.emailQueue.add({
+      await SendEmailHelper.sendOTP({
         to: email,
         subject: 'Your OTP Code',
-        text: `Your OTP code is ${otpCode}`,
+        OTP: otpCode,
       });
 
       return updatedUser;

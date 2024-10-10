@@ -1,7 +1,7 @@
 import { join } from 'path';
 
-import NodeMailer from 'nodemailer';
 import * as hbs from 'express-handlebars';
+import NodeMailer from 'nodemailer';
 import { emailSender } from 'src/configs';
 
 const mailHost = 'smtp.gmail.com';

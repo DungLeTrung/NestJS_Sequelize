@@ -3,6 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
 import { Store } from 'src/database';
+import { SendEmailHelper } from 'src/utils';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -81,10 +82,10 @@ export class StoresService {
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
       });
 
-      await this.emailQueue.add({
+      await SendEmailHelper.sendOTP({
         to: email,
         subject: 'Your OTP Code',
-        text: `Your OTP code is ${otpCode}`,
+        OTP: otpCode,
       });
 
       return updatedUser;
