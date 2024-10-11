@@ -189,13 +189,15 @@ export class AuthService {
         expiresIn: refreshTime,
       });
 
+      const  userSecure = await this.userModel.findOne({
+        where: { phoneNumber, isActive: true },
+        attributes: { exclude: ['password'] },
+      });
+
       return {
         accessToken,
         refreshToken,
-        user: await this.userModel.findOne({
-          where: { phoneNumber, isActive: true },
-          attributes: { exclude: ['password'] },
-        }),
+        user: userSecure
       };
     } catch (error) {
       throw new BadRequestException(`Failed to login user: ${error.message}`);
@@ -231,13 +233,15 @@ export class AuthService {
         expiresIn: refreshTime,
       });
 
+      const storeSecure = await this.storeModel.findOne({
+        where: { email, isApproved: true, isActive: true },
+        attributes: { exclude: ['password'] },
+      });
+
       return {
         accessToken,
         refreshToken,
-        store: await this.storeModel.findOne({
-          where: { email, isApproved: true, isActive: true },
-          attributes: { exclude: ['password'] },
-        }),
+        store: storeSecure,
       };
     } catch (error) {
       throw new BadRequestException(`Failed to login user: ${error.message}`);
