@@ -2,13 +2,14 @@ import { InjectQueue } from '@nestjs/bull';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
-import { Op, WhereOptions } from 'sequelize';
+import { Op, Sequelize, WhereOptions } from 'sequelize';
 import { UserRole } from 'src/constants';
 import { User } from 'src/database';
 import { SendEmailHelper } from 'src/utils';
-import { PaginateDto } from 'src/utils/decorators/paginate';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
+import { UpdateUserDto } from './dto/update-user.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
@@ -98,13 +99,18 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException('User not found');
       }
-      return user;
+
+      const secureUser = await this.userModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+      return secureUser;
     } catch (error) {
       throw new BadRequestException('Can not find user', error.message);
     }
   }
 
-  async getAll(paginateDto: PaginateDto) {
+  async getAll(paginateDto: PaginateDto): Promise<PaginatedResult<User>> {
     try {
       const {
         page = 1,
@@ -120,12 +126,25 @@ export class UsersService {
 
       if (filters && typeof filters === 'object') {
         for (const [key, value] of Object.entries(filters)) {
-          if (key === 'role' || key === 'isActive') {
-            filterConditions[key] = value;
+          if (key === 'fullName' && typeof value === 'string') {
+            const cleanedValue = value.trim();
+            filterConditions[Op.or as unknown as keyof WhereOptions<User>] = [
+              Sequelize.where(
+                Sequelize.fn(
+                  'concat',
+                  Sequelize.col('first_name'),
+                  ' ',
+                  Sequelize.col('last_name'),
+                ),
+                { [Op.like]: `%${cleanedValue}%` },
+              ),
+            ];
+          } else if (key === 'role' || key === 'isActive') {
+            filterConditions[key as keyof User] = value;
           } else if (typeof value === 'string') {
-            filterConditions[key] = { [Op.like]: `%${value}%` };
+            filterConditions[key as keyof User] = { [Op.like]: `%${value}%` };
           } else {
-            filterConditions[key] = value;
+            filterConditions[key as keyof User] = value;
           }
         }
       }
@@ -178,6 +197,52 @@ export class UsersService {
       };
     } catch (error) {
       throw new BadRequestException(`Error in findAll: ${error.message}`);
+    }
+  }
+
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    email: string,
+  ): Promise<User> {
+    try {
+      const user = await this.userModel.findOne({ where: { id } });
+
+      if (!user) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+
+      const permissionUser = await this.userModel.findOne({ where: { email } });
+
+      if (!(+id == permissionUser.id)) {
+        throw new NotFoundException(`User is not permission`);
+      }
+
+      await this.userModel.update(updateUserDto, { where: { id } });
+
+      const updatedUser = await this.userModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+
+      return updatedUser;
+    } catch (error) {
+      throw new BadRequestException(`Failed to update user: ${error.message}`);
+    }
+  }
+
+  async delete(id: string): Promise<string> {
+    try {
+      const user = await this.userModel.findOne({ where: { id } });
+      if (!user) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+
+      await this.userModel.destroy({ where: { id } });
+
+      return `User with id ${id} has been deleted successfully`;
+    } catch (error) {
+      throw new BadRequestException(`Failed to delete user: ${error.message}`);
     }
   }
 }
