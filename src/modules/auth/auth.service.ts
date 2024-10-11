@@ -13,10 +13,14 @@ import {
   refreshTokenCode,
 } from 'src/constants/enums/const';
 import { Store, User } from 'src/database';
-import { AuthResponse } from 'src/interfaces/auth.interface';
+import {
+  AuthStoreResponse,
+  AuthUserResponse,
+} from 'src/interfaces/auth.interface';
 import { SendEmailHelper } from 'src/utils';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
+import { LoginWithEmailDto } from './dto/login-email.dto';
 import { LoginWithPhoneDto } from './dto/login-phone.dto';
 import { CreateAdminDto } from './dto/register-admin.dto';
 import { RegisterStoreDto } from './dto/register-store.dto';
@@ -156,7 +160,7 @@ export class AuthService {
     }
   }
 
-  async loginWithPhone(body: LoginWithPhoneDto): Promise<AuthResponse> {
+  async loginWithPhone(body: LoginWithPhoneDto): Promise<AuthUserResponse> {
     try {
       const { phoneNumber, password } = body;
 
@@ -167,7 +171,6 @@ export class AuthService {
       if (!user) {
         throw new BadRequestException('User not found');
       }
-      
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
@@ -186,12 +189,53 @@ export class AuthService {
         expiresIn: refreshTime,
       });
 
-
       return {
         accessToken,
         refreshToken,
         user: await this.userModel.findOne({
           where: { phoneNumber, isActive: true },
+          attributes: { exclude: ['password'] },
+        }),
+      };
+    } catch (error) {
+      throw new BadRequestException(`Failed to login user: ${error.message}`);
+    }
+  }
+
+  async loginWithEmail(body: LoginWithEmailDto): Promise<AuthStoreResponse> {
+    try {
+      const { email, password } = body;
+
+      const store = await this.storeModel.findOne({
+        where: { email, isApproved: true, isActive: true },
+      });
+
+      if (!store) {
+        throw new BadRequestException('Store not found');
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, store.password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Invalid password');
+      }
+
+      const payload = { email: store.email, sub: store.id };
+
+      const accessToken = this.jwtService.sign(payload, {
+        secret: accessTokenCode,
+        expiresIn: accessTime,
+      });
+
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: refreshTokenCode,
+        expiresIn: refreshTime,
+      });
+
+      return {
+        accessToken,
+        refreshToken,
+        store: await this.storeModel.findOne({
+          where: { email, isApproved: true, isActive: true },
           attributes: { exclude: ['password'] },
         }),
       };
