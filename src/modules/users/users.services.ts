@@ -106,7 +106,7 @@ export class UsersService {
       });
       return secureUser;
     } catch (error) {
-      throw new BadRequestException('Can not find user', error.message);
+      throw new BadRequestException(`Can not find user: ${error.message}`);
     }
   }
 

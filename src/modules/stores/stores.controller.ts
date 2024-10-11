@@ -1,8 +1,8 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from 'src/constants';
 import { Store } from 'src/database';
-import { Roles } from 'src/utils/decorators/customize';
+import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -47,5 +47,12 @@ export class StoresController {
   @Post('approve-store')
   async approveStore(@Body('id') id: string): Promise<Store> {
     return this.storesService.approveStore(id);
+  }
+
+  @Get(':id')
+  @HttpCode(201)
+  @ResponseMessage('GET STORE BY ID')
+  async getUserById(@Param('id') id: string): Promise<Store> {
+    return await this.storesService.findById(id);
   }
 }

@@ -120,4 +120,21 @@ export class StoresService {
       );
     }
   }
+
+  async findById(id: string): Promise<Store> {
+    try {
+      const store = await this.storeModel.findOne({ where: { id } });
+      if (!store) {
+        throw new NotFoundException('Store not found');
+      }
+
+      const secureStore = await this.storeModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+      return secureStore;
+    } catch (error) {
+      throw new BadRequestException(`Can not find store: ${error.message}`);
+    }
+  }
 }
