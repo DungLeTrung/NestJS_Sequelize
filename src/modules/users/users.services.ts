@@ -201,20 +201,18 @@ export class UsersService {
   }
 
   async update(
-    id: string,
+    userId: string,
     updateUserDto: UpdateUserDto,
-    email: string,
+    id: number,
   ): Promise<User> {
     try {
-      const user = await this.userModel.findOne({ where: { id } });
+      const user = await this.userModel.findOne({ where: { id: userId } });
 
       if (!user) {
-        throw new NotFoundException(`User with id ${id} not found`);
+        throw new NotFoundException(`User with id ${userId} not found`);
       }
 
-      const permissionUser = await this.userModel.findOne({ where: { email } });
-
-      if (!(+id == permissionUser.id)) {
+      if (!(+userId == id)) {
         throw new NotFoundException(`User is not permission`);
       }
 

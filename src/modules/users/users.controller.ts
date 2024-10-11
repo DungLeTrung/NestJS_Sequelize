@@ -12,17 +12,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UserRole } from 'src/constants';
+import { CustomRequest } from 'src/constants/custom.request';
 import { User } from 'src/database';
 import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
+
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 import { SendOtpDto } from './dto/send_otp.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { UsersService } from './users.services';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CustomRequest } from 'src/constants/custom.request';
-import { UserRole } from 'src/constants';
 
 @ApiTags('users')
 @Controller('users')
@@ -73,16 +74,16 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
+  @Put(':userId')
   @HttpCode(201)
   @ResponseMessage('UPDATE USER')
   async updateUser(
-    @Param('id') id: string,
+    @Param('userId') userId: string,
       @Body() updateUserDto: UpdateUserDto,
       @Req() req: CustomRequest
   ): Promise<User> {
-    const { email } = req.user;
-    return await this.usersService.update(id, updateUserDto, email);
+    const { id } = req.user;
+    return await this.usersService.update(userId, updateUserDto, id);
   }
 
   @UseGuards(JwtAuthGuard)
