@@ -29,3 +29,13 @@ export class PaginateDto {
 interface Filters {
   [key: string]: string | number | boolean; 
 }
+
+export interface PaginatedResult<T> {
+  result: T[];
+  records: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalItems: number;
+  };
+}

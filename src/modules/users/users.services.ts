@@ -2,8 +2,11 @@ import { InjectQueue } from '@nestjs/bull';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
+import { Op, WhereOptions } from 'sequelize';
+import { UserRole } from 'src/constants';
 import { User } from 'src/database';
 import { SendEmailHelper } from 'src/utils';
+import { PaginateDto } from 'src/utils/decorators/paginate';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -39,7 +42,7 @@ export class UsersService {
         { isActive: true, otpCode: null, expiredAt: null },
         { where: { phoneNumber } },
       );
-      
+
       return await this.userModel.findOne({
         where: { phoneNumber },
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
@@ -98,6 +101,83 @@ export class UsersService {
       return user;
     } catch (error) {
       throw new BadRequestException('Can not find user', error.message);
+    }
+  }
+
+  async getAll(paginateDto: PaginateDto) {
+    try {
+      const {
+        page = 1,
+        limit,
+        sortBy = 'id',
+        sortOrder = 'ASC',
+        filters = {},
+      } = paginateDto;
+
+      const filterConditions: WhereOptions = {
+        role: { [Op.ne]: UserRole.ADMIN },
+      };
+
+      if (filters && typeof filters === 'object') {
+        for (const [key, value] of Object.entries(filters)) {
+          if (key === 'role' || key === 'isActive') {
+            filterConditions[key] = value;
+          } else if (typeof value === 'string') {
+            filterConditions[key] = { [Op.like]: `%${value}%` };
+          } else {
+            filterConditions[key] = value;
+          }
+        }
+      }
+
+      const isPaginationEnabled = !!page && !!limit;
+      let offset = 0;
+
+      if (isPaginationEnabled) {
+        offset = (page - 1) * limit;
+
+        if (isNaN(offset) || isNaN(limit)) {
+          throw new BadRequestException(
+            "Provided 'skip' or 'limit' value is not a number.",
+          );
+        }
+      }
+
+      const totalItems = await this.userModel.count({
+        where: filterConditions,
+      });
+      const totalPages = Math.ceil(totalItems / limit);
+
+      const result = await this.userModel.findAll({
+        attributes: [
+          'id',
+          'email',
+          'username',
+          'firstName',
+          'lastName',
+          'phoneNumber',
+          'role',
+          'isActive',
+          'createdAt',
+          'updatedAt',
+        ],
+        where: filterConditions,
+        offset: isPaginationEnabled ? offset : undefined,
+        limit: isPaginationEnabled ? limit : undefined,
+        order: [[sortBy, sortOrder]],
+      });
+
+      return {
+        result,
+        records: {
+          page,
+          limit,
+          totalPages,
+          totalItems,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(`Error in findAll: ${error.message}`);
     }
   }
 }
