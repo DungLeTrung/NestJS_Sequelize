@@ -4,6 +4,7 @@ import { ResponseMessage } from 'src/utils/decorators/customize';
 
 
 import { AuthService } from './auth.service';
+import { LoginWithEmailDto } from './dto/login-email.dto';
 import { LoginWithPhoneDto } from './dto/login-phone.dto';
 import { CreateAdminDto } from './dto/register-admin.dto';
 import { RegisterStoreDto } from './dto/register-store.dto';
@@ -33,5 +34,10 @@ export class AuthController {
   @Post('login-user')
   async loginWithPhone(@Body() loginWithPhoneDto: LoginWithPhoneDto) {
     return this.authService.loginWithPhone(loginWithPhoneDto);
+  }
+
+  @Post('login-store')
+  async loginWithEmail(@Body() loginWithEmailDto: LoginWithEmailDto) {
+    return this.authService.loginWithEmail(loginWithEmailDto);
   }
 }
