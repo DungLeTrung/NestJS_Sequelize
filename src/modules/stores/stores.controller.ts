@@ -1,8 +1,19 @@
-import { Body, Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from 'src/constants';
 import { Store } from 'src/database';
 import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -54,5 +65,23 @@ export class StoresController {
   @ResponseMessage('GET STORE BY ID')
   async getUserById(@Param('id') id: string): Promise<Store> {
     return await this.storesService.findById(id);
+  }
+
+  @Get()
+  @HttpCode(201)
+  @ResponseMessage('LIST STORES')
+  async getAll(
+    @Query() paginateDto: PaginateDto,
+  ): Promise<PaginatedResult<Store>> {
+    return await this.storesService.getAll(paginateDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @Delete(':id')
+  @HttpCode(201)
+  @ResponseMessage('DELETE STORE')
+  async delete(@Param('id') id: string): Promise<string> {
+    return await this.storesService.delete(id);
   }
 }

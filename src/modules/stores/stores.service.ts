@@ -6,8 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
+import { Op, WhereOptions } from 'sequelize';
 import { Store } from 'src/database';
 import { SendEmailHelper } from 'src/utils';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -110,7 +112,7 @@ export class StoresService {
         { where: { id: storeId } },
       );
 
-      return  await this.storeModel.findOne({
+      return await this.storeModel.findOne({
         where: { id: storeId },
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
       });
@@ -135,6 +137,94 @@ export class StoresService {
       return secureStore;
     } catch (error) {
       throw new BadRequestException(`Can not find store: ${error.message}`);
+    }
+  }
+
+  async getAll(paginateDto: PaginateDto): Promise<PaginatedResult<Store>> {
+    try {
+      const {
+        page = 1,
+        limit,
+        sortBy = 'id',
+        sortOrder = 'ASC',
+        filters = {},
+      } = paginateDto;
+
+      const filterConditions: WhereOptions = {};
+
+      if (filters && typeof filters === 'object') {
+        for (const [key, value] of Object.entries(filters)) {
+          if (key === 'isApproved' || key === 'isActive') {
+            filterConditions[key as keyof Store] = value;
+          } else if (typeof value === 'string') {
+            filterConditions[key as keyof Store] = { [Op.like]: `%${value}%` };
+          } else {
+            filterConditions[key as keyof Store] = value;
+          }
+        }
+      }
+
+      const isPaginationEnabled = !!page && !!limit;
+      let offset = 0;
+
+      if (isPaginationEnabled) {
+        offset = (page - 1) * limit;
+
+        if (isNaN(offset) || isNaN(limit)) {
+          throw new BadRequestException(
+            "Provided 'skip' or 'limit' value is not a number.",
+          );
+        }
+      }
+
+      const totalItems = await this.storeModel.count({
+        where: filterConditions,
+      });
+      const totalPages = Math.ceil(totalItems / limit);
+
+      const result = await this.storeModel.findAll({
+        attributes: [
+          'id',
+          'email',
+          'name',
+          'rewards',
+          'isActive',
+          'isApproved',
+          'createdAt',
+          'updatedAt',
+        ],
+        where: filterConditions,
+        offset: isPaginationEnabled ? offset : undefined,
+        limit: isPaginationEnabled ? limit : undefined,
+        order: [[sortBy, sortOrder]],
+      });
+
+      return {
+        result,
+        records: {
+          page,
+          limit,
+          totalPages,
+          totalItems,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(`Error in findAll: ${error.message}`);
+    }
+  }
+
+  async delete(id: string): Promise<string> {
+    try {
+      const user = await this.storeModel.findOne({ where: { id } });
+      if (!user) {
+        throw new NotFoundException(`Store with id ${id} not found`);
+      }
+
+      await this.storeModel.destroy({ where: { id } });
+
+      return `Store with id ${id} has been deleted successfully`;
+    } catch (error) {
+      throw new BadRequestException(`Failed to delete store: ${error.message}`);
     }
   }
 }
