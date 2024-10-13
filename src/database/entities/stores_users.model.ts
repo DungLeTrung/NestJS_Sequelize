@@ -7,7 +7,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import { Store } from './store.model';
+import { Store } from './stores.model';
 import { User } from './users.model';
 
 @Table({

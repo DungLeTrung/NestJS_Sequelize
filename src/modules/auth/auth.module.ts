@@ -14,12 +14,15 @@ import { UsersModule, UsersService } from '../users';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtStoreAuthGuard } from './jwt-store.guard';
+import { JwtStoreStrategy } from './passport/jwt-store.strategy';
 import { JwtStrategy } from './passport/jwt.strategy';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User, Store]), 
-    UsersModule, StoresModule,
+    SequelizeModule.forFeature([User, Store]),
+    UsersModule,
+    StoresModule,
     BullModule.registerQueue({
       name: 'mail',
     }),
@@ -41,6 +44,8 @@ import { JwtStrategy } from './passport/jwt.strategy';
     JwtStrategy,
     UsersService,
     StoresService,
+    JwtStoreAuthGuard,
+    JwtStoreStrategy,
   ],
   exports: [AuthService, SequelizeModule],
 })

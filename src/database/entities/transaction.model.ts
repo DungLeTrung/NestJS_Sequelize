@@ -9,7 +9,7 @@ import {
 } from 'sequelize-typescript';
 
 import { Reward } from './reward.model';
-import { Store } from './store.model'; // Giả sử Store model được khai báo trong store.model.ts
+import { Store } from './stores.model'; // Giả sử Store model được khai báo trong store.model.ts
 import { TransactionReward } from './transaction_rewards.model';
 import { User } from './users.model';
 import { UserPointsHistory } from './users_points_history.model';

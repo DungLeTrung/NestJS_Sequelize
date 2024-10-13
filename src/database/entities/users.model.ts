@@ -30,7 +30,7 @@ import {
 export class User extends Model {
   @Column({
     primaryKey: true,
-    autoIncrement: true, 
+    autoIncrement: true,
     type: DataType.INTEGER,
   })
   id: number;

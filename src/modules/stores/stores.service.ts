@@ -12,6 +12,7 @@ import { SendEmailHelper } from 'src/utils';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
 
+import { UpdateStoreDto } from './dto/update-store.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
@@ -83,7 +84,7 @@ export class StoresService {
         { where: { email } },
       );
 
-      const updatedUser = await this.storeModel.findOne({
+      const updatedStore = await this.storeModel.findOne({
         where: { email },
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
       });
@@ -94,7 +95,7 @@ export class StoresService {
         OTP: otpCode,
       });
 
-      return updatedUser;
+      return updatedStore;
     } catch (error) {
       throw new BadRequestException(`Failed to re-send OTP: ${error.message}`);
     }
@@ -215,8 +216,8 @@ export class StoresService {
 
   async delete(id: string): Promise<string> {
     try {
-      const user = await this.storeModel.findOne({ where: { id } });
-      if (!user) {
+      const store = await this.storeModel.findOne({ where: { id } });
+      if (!store) {
         throw new NotFoundException(`Store with id ${id} not found`);
       }
 
@@ -225,6 +226,35 @@ export class StoresService {
       return `Store with id ${id} has been deleted successfully`;
     } catch (error) {
       throw new BadRequestException(`Failed to delete store: ${error.message}`);
+    }
+  }
+
+  async update(
+    storeId: string,
+    updateStoreDto: UpdateStoreDto,
+    id: number,
+  ): Promise<Store> {
+    try {
+      const store = await this.storeModel.findOne({ where: { id: storeId } });
+
+      if (!store) {
+        throw new NotFoundException(`Store with id ${storeId} not found`);
+      }
+
+      if (!(+storeId == id)) {
+        throw new NotFoundException(`Store is not permission`);
+      }
+
+      await this.storeModel.update(updateStoreDto, { where: { id } });
+
+      const updatedStore = await this.storeModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+
+      return updatedStore;
+    } catch (error) {
+      throw new BadRequestException(`Failed to update store: ${error.message}`);
     }
   }
 }

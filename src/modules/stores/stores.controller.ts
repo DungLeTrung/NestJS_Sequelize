@@ -6,18 +6,23 @@ import {
   HttpCode,
   Param,
   Post,
+  Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from 'src/constants';
+import { CustomRequest, CustomStoreRequest } from 'src/constants/custom.request';
 import { Store } from 'src/database';
 import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtStoreAuthGuard } from '../auth/jwt-store.guard';
 
 import { SendOtpDto } from './dto/send_otp.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StoresService } from './stores.service';
 
@@ -83,5 +88,19 @@ export class StoresController {
   @ResponseMessage('DELETE STORE')
   async delete(@Param('id') id: string): Promise<string> {
     return await this.storesService.delete(id);
+  }
+
+  @UseGuards(JwtStoreAuthGuard)
+  @Put(':storeId')
+  @HttpCode(201)
+  @ResponseMessage('UPDATE STORE')
+  async updateStore(
+    @Param('storeId') storeId: string,
+    @Body() updateStoreDto: UpdateStoreDto,
+    @Req() req: CustomStoreRequest,
+  ): Promise<Store> {
+    const { id } = req.store;
+    console.log(req.store);
+    return await this.storesService.update(storeId, updateStoreDto, id);
   }
 }

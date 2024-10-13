@@ -8,7 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
-import { Store } from './store.model';
+import { Store } from './stores.model';
 import { Transaction } from './transaction.model';
 import { TransactionReward } from './transaction_rewards.model';
 import { User } from './users.model';
