@@ -1,12 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Rank } from 'src/database';
 
 import { CreateRankDto } from './dto/create-rank.dto';
 import { UpdateRankDto } from './dto/update-rank.dto';
 
 @Injectable()
 export class RankService {
-  create(createRankDto: CreateRankDto) {
-    return 'This action adds a new rank';
+  constructor(
+    @InjectModel(Rank)
+    private readonly rankModel: typeof Rank,
+  ) {}
+
+  async create(createRankDto: CreateRankDto): Promise<Rank> {
+    try {
+      const rank = await this.rankModel.create({
+        name: createRankDto.name,
+        requiredPoints: createRankDto.requiredPoints,
+        amount: createRankDto.amount,
+        fixedPoints: createRankDto.fixedPoints,
+        percentagePoints: createRankDto.percentagePoints,
+        maxPercentagePoints: createRankDto.maxPercentagePoints,
+      });      
+      return rank;
+    } catch (error) {
+      throw new BadRequestException(`Failed to create rank: ${error.message}`);
+    }
   }
 
   findAll() {

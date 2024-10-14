@@ -3,10 +3,16 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { UserRole } from 'src/constants';
+import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
+
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 import { CreateRankDto } from './dto/create-rank.dto';
 import { UpdateRankDto } from './dto/update-rank.dto';
@@ -17,6 +23,10 @@ export class RankController {
   constructor(private readonly rankService: RankService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @ResponseMessage('CREATE RANK')
+  @HttpCode(200)
   create(@Body() createRankDto: CreateRankDto) {
     return this.rankService.create(createRankDto);
   }
