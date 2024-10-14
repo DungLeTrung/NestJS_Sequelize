@@ -81,9 +81,10 @@ export class StoresController {
     return await this.storesService.getAll(paginateDto);
   }
 
+  
+  @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)
-  @Delete(':id')
   @HttpCode(201)
   @ResponseMessage('DELETE STORE')
   async delete(@Param('id') id: string): Promise<string> {

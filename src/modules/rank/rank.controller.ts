@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -50,13 +51,22 @@ export class RankController {
     return await this.rankService.findById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRankDto: UpdateRankDto) {
-    return this.rankService.update(+id, updateRankDto);
+  @Put(':id')
+  @HttpCode(201)
+  @ResponseMessage('UPDATE RANK')
+  async updateRank(
+    @Param('id') id: string,
+    @Body() updateRankDto: UpdateRankDto,
+  ) {
+    return await this.rankService.update(id, updateRankDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.rankService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @HttpCode(201)
+  @ResponseMessage('DELETE RANK')
+  async delete(@Param('id') id: string): Promise<string> {
+    return await this.rankService.delete(id);
   }
 }
