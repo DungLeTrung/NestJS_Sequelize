@@ -6,7 +6,7 @@ import { Store } from 'src/database';
 import { StoresService } from 'src/modules/stores';
 
 @Injectable()
-export class JwtStoreStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStoreStrategy extends PassportStrategy(Strategy, 'store-jwt') {
   constructor(
     private storeService: StoresService,
   ) {

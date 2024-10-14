@@ -6,7 +6,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtStoreAuthGuard extends AuthGuard('jwt') {
+export class JwtStoreAuthGuard extends AuthGuard('store-jwt') {
   handleRequest<TUser = any>(
     err: any,
     storePayload: any,

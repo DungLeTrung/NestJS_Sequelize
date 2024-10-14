@@ -100,7 +100,6 @@ export class StoresController {
     @Req() req: CustomStoreRequest,
   ): Promise<Store> {
     const { id } = req.store;
-    console.log(req.store);
     return await this.storesService.update(storeId, updateStoreDto, id);
   }
 }
