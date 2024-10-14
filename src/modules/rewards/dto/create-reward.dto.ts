@@ -1,4 +1,14 @@
-import { IsNotEmpty, IsOptional, IsInt, IsString, IsDateString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsDate,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  MinDate,
+} from 'class-validator';
 
 export class CreateRewardDto {
   @IsNotEmpty()
@@ -6,15 +16,17 @@ export class CreateRewardDto {
   name: string;
 
   @IsNotEmpty()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   pointsRequired: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   description?: string;
 
   @IsNotEmpty()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   quantity: number;
@@ -24,6 +36,8 @@ export class CreateRewardDto {
   imageUrl?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsDate()
+  @MinDate(new Date(), { message: 'Date must be in the future' })
+  @Type(() => Date)
   expiredAt?: Date;
 }

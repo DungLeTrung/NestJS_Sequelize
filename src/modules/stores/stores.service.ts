@@ -28,6 +28,7 @@ export class StoresService {
 
       const store = await this.storeModel.findOne({
         where: { email },
+        attributes: { exclude: ['password'] },
       });
 
       if (!store) {
