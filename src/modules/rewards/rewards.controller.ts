@@ -1,43 +1,45 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  Param,
-  Patch,
+  HttpCode,
   Post,
+  Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import { CustomStoreRequest } from 'src/constants/custom.request';
+import { Reward } from 'src/database';
+import { ResponseMessage } from 'src/utils/decorators/customize';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
+
+import { JwtStoreAuthGuard } from '../auth/jwt-store.guard';
 
 import { CreateRewardDto } from './dto/create-reward.dto';
-import { UpdateRewardDto } from './dto/update-reward.dto';
 import { RewardsService } from './rewards.service';
 
 @Controller('rewards')
 export class RewardsController {
   constructor(private readonly rewardsService: RewardsService) {}
 
+  @UseGuards(JwtStoreAuthGuard)
   @Post()
-  create(@Body() createRewardDto: CreateRewardDto) {
-    return this.rewardsService.create(createRewardDto);
+  @ResponseMessage('CREATE REWARD')
+  @HttpCode(201)
+  createReward(
+    @Body() createRewardDto: CreateRewardDto,
+    @Req() req: CustomStoreRequest,
+  ) {
+    const { id: storeId } = req.store;
+    return this.rewardsService.create(createRewardDto, storeId);
   }
 
   @Get()
-  findAll() {
-    return this.rewardsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.rewardsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRewardDto: UpdateRewardDto) {
-    return this.rewardsService.update(+id, updateRewardDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.rewardsService.remove(+id);
+  @HttpCode(201)
+  @ResponseMessage('LIST REWARDS')
+  async getAll(
+    @Query() paginateDto: PaginateDto,
+  ): Promise<PaginatedResult<Reward>> {
+    return await this.rewardsService.getAll(paginateDto);
   }
 }

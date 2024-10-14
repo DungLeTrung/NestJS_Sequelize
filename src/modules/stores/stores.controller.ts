@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from 'src/constants';
-import { CustomRequest, CustomStoreRequest } from 'src/constants/custom.request';
+import { CustomStoreRequest } from 'src/constants/custom.request';
 import { Store } from 'src/database';
 import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
@@ -81,7 +81,6 @@ export class StoresController {
     return await this.storesService.getAll(paginateDto);
   }
 
-  
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)

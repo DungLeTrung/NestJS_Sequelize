@@ -7,7 +7,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
 import { Op, WhereOptions } from 'sequelize';
-import { Store } from 'src/database';
+import { Reward, Store } from 'src/database';
 import { SendEmailHelper } from 'src/utils';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
