@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreateRankDto {
   @IsNotEmpty()
@@ -10,18 +10,22 @@ export class CreateRankDto {
   requiredPoints: number;
 
   @IsOptional()
+  @IsPositive()
   @IsNumber()
   amount?: number;
 
   @IsOptional()
+  @IsPositive()
   @IsNumber()
   fixedPoints?: number;
 
   @IsOptional()
+  @IsPositive()
   @IsNumber()
   percentagePoints?: number;
 
   @IsOptional()
+  @IsPositive()
   @IsNumber()
   maxPercentagePoints?: number;
 }

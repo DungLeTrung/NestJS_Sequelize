@@ -7,10 +7,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UserRole } from 'src/constants';
+import { Rank } from 'src/database';
 import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -32,13 +35,19 @@ export class RankController {
   }
 
   @Get()
-  findAll() {
-    return this.rankService.findAll();
+  @HttpCode(201)
+  @ResponseMessage('LIST STORES')
+  async getAll(
+    @Query() paginateDto: PaginateDto,
+  ): Promise<PaginatedResult<Rank>> {
+    return await this.rankService.getAll(paginateDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.rankService.findOne(+id);
+  @HttpCode(201)
+  @ResponseMessage('GET RANK BY ID')
+  async getRankById(@Param('id') id: string): Promise<Rank> {
+    return await this.rankService.findById(id);
   }
 
   @Patch(':id')
