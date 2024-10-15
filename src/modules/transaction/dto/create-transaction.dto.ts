@@ -1,4 +1,5 @@
-import {IsNumber, IsInt, IsNotEmpty } from 'class-validator';
+import {IsNumber, IsInt, IsNotEmpty, IsEnum } from 'class-validator';
+import { PointType } from 'src/constants/enums/point.enum';
 
 export class CreateTransactionDto {
   @IsNotEmpty()
@@ -12,4 +13,8 @@ export class CreateTransactionDto {
   @IsNotEmpty()
   @IsNumber()
   totalPayment: number;
+
+  @IsNotEmpty()
+  @IsEnum(PointType) 
+  pointType: PointType;
 }

@@ -5,14 +5,25 @@ import {
   Get,
   HttpCode,
   Param,
-  Patch,
   Post,
+  Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { ResponseMessage } from 'src/utils/decorators/customize';
+import { UserRole } from 'src/constants';
+import {
+  CustomRequest,
+  CustomStoreRequest,
+} from 'src/constants/custom.request';
+import { Transaction } from 'src/database';
+import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
-import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { TransactionService } from './transaction.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtStoreAuthGuard } from '../auth/jwt-store.guard';
+
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { TransactionService } from './transaction.service';
 
 @Controller('transaction')
 export class TransactionController {
@@ -25,26 +36,42 @@ export class TransactionController {
     return this.transactionService.create(createTransactionDto);
   }
 
-  @Get()
-  findAll() {
-    return this.transactionService.findAll();
+  @UseGuards(JwtStoreAuthGuard)
+  @Get('stores')
+  @HttpCode(201)
+  @ResponseMessage('LIST TRANSACTIONS OF STORE')
+  async listTransactionsforStore(
+    @Req() req: CustomStoreRequest,
+    @Query() paginateDto: PaginateDto,
+  ): Promise<PaginatedResult<Transaction>> {
+    const { id: storeId } = req.store;
+    return await this.transactionService.listTransactionsforStore(
+      storeId,
+      paginateDto,
+    );
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateTransactionDto: UpdateTransactionDto,
-  ) {
-    return this.transactionService.update(+id, updateTransactionDto);
+  @UseGuards(JwtAuthGuard)
+  @Get('/users/')
+  @HttpCode(201)
+  @ResponseMessage('LIST TRANSACTIONS OF USER')
+  async listTransactionsforUsers(
+    @Req() req: CustomRequest,
+    @Query() paginateDto: PaginateDto,
+  ): Promise<PaginatedResult<Transaction>> {
+    const { id: userId } = req.user;
+    return await this.transactionService.listTransactionsforUsers(
+      userId,
+      paginateDto,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @HttpCode(201)
+  @ResponseMessage('DELETE TRANSACTION')
+  async delete(@Param('id') id: string): Promise<string> {
+    return await this.transactionService.delete(id);
   }
 }

@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op, WhereOptions } from 'sequelize';
+import { RankClassic } from 'src/constants/enums/rank.enum';
 import { Rank } from 'src/database';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { CreateRankDto } from './dto/create-rank.dto';
 import { UpdateRankDto } from './dto/update-rank.dto';
-import { RankClassic } from 'src/constants/enums/rank.enum';
 
 @Injectable()
 export class RankService {
