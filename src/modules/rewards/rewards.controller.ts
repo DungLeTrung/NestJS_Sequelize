@@ -84,7 +84,6 @@ export class RewardsController {
     @Req() req: CustomStoreRequest,
   ) {
     updateRewardDto.imageUrl = file?.path;
-
     const { id: storeId } = req.store;
     return await this.rewardsService.update(id, updateRewardDto, storeId);
   }

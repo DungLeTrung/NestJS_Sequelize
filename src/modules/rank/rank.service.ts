@@ -6,6 +6,7 @@ import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { CreateRankDto } from './dto/create-rank.dto';
 import { UpdateRankDto } from './dto/update-rank.dto';
+import { RankClassic } from 'src/constants/enums/rank.enum';
 
 @Injectable()
 export class RankService {
@@ -171,6 +172,10 @@ export class RankService {
       const rank = await this.rankModel.findOne({ where: { id } });
       if (!rank) {
         throw new NotFoundException(`Rank with id ${id} not found`);
+      }
+
+      if(rank.name === RankClassic.BRONZE || rank.name === RankClassic.SLIVER || rank.name === RankClassic.GOLD) {
+        throw new NotFoundException(`Cannot delete the Classic Rank`);
       }
 
       await this.rankModel.destroy({ where: { id } });

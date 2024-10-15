@@ -1,4 +1,13 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsPhoneNumber, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterUserDto {
   @IsString()
@@ -11,9 +20,13 @@ export class RegisterUserDto {
   @IsNotEmpty()
   email: string;
 
-  @IsPhoneNumber('VN') 
+  @IsPhoneNumber('VN')
   @IsNotEmpty()
   phoneNumber: string;
+
+  @IsOptional()
+  @IsInt()
+  rankId: number;
 
   @IsNotEmpty()
   @IsString()

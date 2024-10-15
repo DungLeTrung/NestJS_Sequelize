@@ -43,7 +43,7 @@ export class Transaction extends Model {
     type: DataType.DECIMAL(10, 2),
     allowNull: false,
   })
-  totalBill: number;
+  totalPayment: number;
 
   @Column({
     type: DataType.INTEGER,
