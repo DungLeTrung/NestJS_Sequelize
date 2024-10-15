@@ -55,6 +55,12 @@ export class Transaction extends Model {
   pointsUsed: number;
 
   @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  quantity: number;
+
+  @Column({
     type: DataType.ENUM(...Object.values(PointType)),
     allowNull: true,
   })

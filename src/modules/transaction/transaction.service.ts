@@ -6,13 +6,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Op, WhereOptions } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import {
-  FixedPoints,
-  FixedRanks,
-  PointType,
-  RankId,
-} from 'src/constants/enums/point.enum';
-import { RankClassic } from 'src/constants/enums/rank.enum';
+import { PointType } from 'src/constants/enums/point.enum';
 import {
   Rank,
   Store,
@@ -76,7 +70,7 @@ export class TransactionService {
         transaction,
       });
 
-      if(!rank) {
+      if (!rank) {
         throw new BadRequestException('Users have not ranking');
       }
 
@@ -112,19 +106,23 @@ export class TransactionService {
         transaction,
       });
 
+      
       if (pointType === PointType.CLASSIC) {
-        let pointsRate: number;
-        if (rank?.name === RankClassic.BRONZE) {
-          pointsRate = FixedPoints.Bronze;
-        } else if (rank?.name === RankClassic.SLIVER) {
-          pointsRate = FixedPoints.Sliver;
-        } else if (rank?.name === RankClassic.GOLD) {
-          pointsRate = FixedPoints.Gold;
-        } else {
-          pointsRate = rank?.fixedPoints;
+        const ranksPoints = await this.rankModel.findAll({
+          order: [['requiredPoints', 'ASC']],
+        });
+  
+        let pointsRate = 0;
+
+        for (const rank of ranksPoints) {
+          if (user.rankId === rank.id) {
+            pointsRate = rank.fixedPoints;
+            break; 
+          }
         }
 
-        const pointsEarned = Math.floor(totalPayment / rank?.amount) * pointsRate;
+        const pointsEarned =
+          Math.floor(totalPayment / rank?.amount) * pointsRate;
 
         if (existingPointsHistory) {
           existingPointsHistory.pointsEarned += pointsEarned;
@@ -144,16 +142,17 @@ export class TransactionService {
         }
       }
 
-      if (existingPointsHistory.pointsEarned >= FixedRanks.Sliver) {
-        await this.userModel.update(
-          { rankId: RankId.Sliver },
-          { where: { id: userId } },
-        );
-      } else if (existingPointsHistory.pointsEarned >= FixedRanks.Gold) {
-        await this.userModel.update(
-          { rankId: RankId.Gold },
-          { where: { id: userId } },
-        );
+      const ranks = await this.rankModel.findAll({
+        order: [['requiredPoints', 'ASC']],
+      });
+
+      for (const rank of ranks) {
+        if (existingPointsHistory.pointsEarned >= rank.requiredPoints) {
+          await this.userModel.update(
+            { rankId: rank.id },
+            { where: { id: userId } },
+          );
+        }
       }
 
       await transaction.commit();
