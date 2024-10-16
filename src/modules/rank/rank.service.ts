@@ -220,14 +220,6 @@ export class RankService {
         throw new NotFoundException(`Rank with id ${id} not found`);
       }
 
-      if (
-        rank.name === RankClassic.BRONZE ||
-        rank.name === RankClassic.SLIVER ||
-        rank.name === RankClassic.GOLD
-      ) {
-        throw new NotFoundException(`Cannot delete the Classic Rank`);
-      }
-
       const users = await this.userModel.findAll({
         where: { rankId: id, isActive: true },
       });

@@ -1,18 +1,15 @@
 import {
   BelongsTo,
-  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
 
 import { Store } from './stores.model';
-import { Transaction } from './transaction.model';
-import { TransactionReward } from './transaction_rewards.model';
-import { User } from './users.model';
-import { UserReward } from './users_rewards.model';
+import { Redemption } from './redemption.model';
 
 @Table({
   tableName: 'rewards',
@@ -70,12 +67,9 @@ export class Reward extends Model {
   })
   expiredAt: Date;
 
-  @BelongsToMany(() => User, () => UserReward)
-  users: User[];
-
-  @BelongsToMany(() => Transaction, () => TransactionReward)
-  transactions: Transaction[];
-
   @BelongsTo(() => Store)
   stores: Store;
+
+  @HasMany(() => Redemption) 
+  redemptions: Redemption[];
 }

@@ -1,6 +1,5 @@
 import {
   BelongsTo,
-  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
@@ -9,9 +8,7 @@ import {
 } from 'sequelize-typescript';
 import { PointType } from 'src/constants/enums/point.enum';
 
-import { Reward } from './reward.model';
 import { Store } from './stores.model';
-import { TransactionReward } from './transaction_rewards.model';
 import { User } from './users.model';
 
 @Table({
@@ -46,25 +43,10 @@ export class Transaction extends Model {
   totalPayment: number;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-  })
-  pointsUsed: number;
-
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-  })
-  quantity: number;
-
-  @Column({
     type: DataType.ENUM(...Object.values(PointType)),
     allowNull: true,
   })
   pointType: PointType;
-
-  @BelongsToMany(() => Reward, () => TransactionReward)
-  rewards: Reward[];
 
   @BelongsTo(() => User)
   users: User;

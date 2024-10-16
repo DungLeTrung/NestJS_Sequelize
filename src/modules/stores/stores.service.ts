@@ -43,11 +43,8 @@ export class StoresService {
         throw new BadRequestException('OTP code has expired');
       }
 
-      store.isActive = true;
-      store.otpCode = null;
-      store.expiredAt = null;
       await this.storeModel.update(
-        { isActive: true, otpCode: null, expiredAt: null },
+        { isVerify: true, otpCode: null, expiredAt: null },
         { where: { email } },
       );
       return await this.storeModel.findOne({
@@ -70,16 +67,14 @@ export class StoresService {
         throw new BadRequestException('Store not found');
       }
 
-      if (store.isActive) {
+      if (store.isVerify) {
         throw new BadRequestException(
-          'Store is already active, no need to send OTP',
+          'Store is already verify, no need to send OTP',
         );
       }
 
       const { otpCode, expiredAt } = generateOtpCode();
 
-      store.otpCode = otpCode;
-      store.expiredAt = expiredAt;
       await this.storeModel.update(
         { otpCode, expiredAt },
         { where: { email } },
@@ -102,25 +97,51 @@ export class StoresService {
     }
   }
 
-  async approveStore(storeId: number): Promise<Store> {
+  async approveStore(id: number): Promise<Store> {
     try {
-      const store = await this.storeModel.findOne({ where: { id: storeId } });
+      const store = await this.storeModel.findOne({ where: { id } });
       if (!store) {
         throw new NotFoundException('Store not found');
       }
 
       await this.storeModel.update(
         { isApproved: true },
-        { where: { id: storeId } },
+        { where: { id } },
       );
 
       return await this.storeModel.findOne({
-        where: { id: storeId },
+        where: { id },
         attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
       });
     } catch (error) {
       throw new BadRequestException(
         `Failed to approve store: ${error.message}`,
+      );
+    }
+  }
+
+  async activeStore(id: number): Promise<Store> {
+    try {
+      const store = await this.storeModel.findOne({ where: { id } });
+      if (!store) {
+        throw new NotFoundException('Store not found');
+      }
+
+      const newIsActiveStatus = !store.isActive;
+
+      
+      await this.storeModel.update(
+        { isActive: newIsActiveStatus },
+        { where: { id } },
+      );
+
+      return await this.storeModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to active/deactive store: ${error.message}`,
       );
     }
   }
@@ -155,7 +176,11 @@ export class StoresService {
 
       if (filters && typeof filters === 'object') {
         for (const [key, value] of Object.entries(filters)) {
-          if (key === 'isApproved' || key === 'isActive') {
+          if (
+            key === 'isApproved' ||
+            key === 'isActive' ||
+            key === 'isVerify'
+          ) {
             filterConditions[key as keyof Store] = value;
           } else if (typeof value === 'string') {
             filterConditions[key as keyof Store] = { [Op.like]: `%${value}%` };
@@ -190,6 +215,7 @@ export class StoresService {
           'name',
           'rewards',
           'isActive',
+          'isVerify',
           'isApproved',
           'createdAt',
           'updatedAt',
