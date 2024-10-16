@@ -13,8 +13,6 @@ import {
   Transaction,
   TransactionReward,
   User,
-  UserPointsHistory,
-  UserRankHistory,
   UserReward,
 } from './database';
 import { IoRedisModule, UploadsModule, UsersModule } from './modules';
@@ -25,10 +23,8 @@ import { StoresModule } from './modules/stores/stores.module';
 import { StoresUsersModule } from './modules/stores_users/stores_users.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { TransactionRewardsModule } from './modules/transaction_rewards/transaction_rewards.module';
-import { TwilioModule } from './utils/twilio/twilio.module';
-import { UsersPointsHistoryModule } from './modules/users_points_history/users_points_history.module';
-import { UsersRankHistoryModule } from './modules/users_rank_history/users_rank_history.module';
 import { UsersRewardsModule } from './modules/users_rewards/users_rewards.module';
+import { TwilioModule } from './utils/twilio/twilio.module';
 
 @Module({
   imports: [
@@ -61,9 +57,7 @@ import { UsersRewardsModule } from './modules/users_rewards/users_rewards.module
           Reward,
           StoreUser,
           UserReward,
-          UserRankHistory,
           Transaction,
-          UserPointsHistory,
           TransactionReward,
         ],
       }),
@@ -77,8 +71,6 @@ import { UsersRewardsModule } from './modules/users_rewards/users_rewards.module
     RewardsModule,
     StoresUsersModule,
     UsersRewardsModule,
-    UsersRankHistoryModule,
-    UsersPointsHistoryModule,
     TransactionModule,
     TransactionRewardsModule,
     AuthModule,

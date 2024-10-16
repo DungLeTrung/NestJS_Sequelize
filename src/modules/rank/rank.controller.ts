@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   Param,
-  Patch,
   Post,
   Put,
   Query,
@@ -52,6 +51,8 @@ export class RankController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
   @HttpCode(201)
   @ResponseMessage('UPDATE RANK')
   async updateRank(

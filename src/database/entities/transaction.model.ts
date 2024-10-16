@@ -3,19 +3,16 @@ import {
   BelongsToMany,
   Column,
   DataType,
-  Default,
   ForeignKey,
-  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
 import { PointType } from 'src/constants/enums/point.enum';
 
 import { Reward } from './reward.model';
-import { Store } from './stores.model'; // Giả sử Store model được khai báo trong store.model.ts
+import { Store } from './stores.model';
 import { TransactionReward } from './transaction_rewards.model';
 import { User } from './users.model';
-import { UserPointsHistory } from './users_points_history.model';
 
 @Table({
   tableName: 'transactions',
@@ -65,9 +62,6 @@ export class Transaction extends Model {
     allowNull: true,
   })
   pointType: PointType;
-
-  @HasMany(() => UserPointsHistory)
-  pointsHistory: UserPointsHistory[];
 
   @BelongsToMany(() => Reward, () => TransactionReward)
   rewards: Reward[];

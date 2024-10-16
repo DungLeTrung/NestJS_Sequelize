@@ -7,14 +7,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Op, WhereOptions } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { PointType } from 'src/constants/enums/point.enum';
-import {
-  Rank,
-  Store,
-  StoreUser,
-  Transaction,
-  User,
-  UserPointsHistory,
-} from 'src/database';
+import { Rank, Store, StoreUser, Transaction, User } from 'src/database';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -28,8 +21,6 @@ export class TransactionService {
     @InjectModel(Store) private readonly storeModel: typeof Store,
     @InjectModel(StoreUser) private readonly storeUserModel: typeof StoreUser,
     @InjectModel(Rank) private readonly rankModel: typeof Rank,
-    @InjectModel(UserPointsHistory)
-    private readonly userPointModel: typeof UserPointsHistory,
     private readonly sequelize: Sequelize,
   ) {}
 
@@ -99,39 +90,30 @@ export class TransactionService {
         );
       }
 
-      const existingPointsHistory = await this.userPointModel.findOne({
-        where: {
-          userId: userId,
-        },
-        transaction,
-      });
-
-      
       if (pointType === PointType.CLASSIC) {
         const ranksPoints = await this.rankModel.findAll({
           order: [['requiredPoints', 'ASC']],
         });
-  
         let pointsRate = 0;
 
         for (const rank of ranksPoints) {
           if (user.rankId === rank.id) {
             pointsRate = rank.fixedPoints;
-            break; 
+            break;
           }
         }
 
         const pointsEarned =
           Math.floor(totalPayment / rank?.amount) * pointsRate;
 
-        if (existingPointsHistory) {
-          existingPointsHistory.pointsEarned += pointsEarned;
-          await this.userPointModel.update(
-            { pointsEarned: existingPointsHistory.pointsEarned },
-            { where: { id: existingPointsHistory.id }, transaction },
+        if (user) {
+          user.pointsEarned += pointsEarned;
+          await this.userModel.update(
+            { pointsEarned: user.pointsEarned },
+            { where: { id: user.id }, transaction },
           );
         } else {
-          await this.userPointModel.create(
+          await this.userModel.create(
             {
               userId: userId,
               transactionId: newTransaction.id,
@@ -147,10 +129,11 @@ export class TransactionService {
       });
 
       for (const rank of ranks) {
-        if (existingPointsHistory.pointsEarned >= rank.requiredPoints) {
+        if (user.pointsEarned >= rank.requiredPoints) {
           await this.userModel.update(
             { rankId: rank.id },
-            { where: { id: userId } },
+            { where: { id: userId }, transaction },
+            
           );
         }
       }

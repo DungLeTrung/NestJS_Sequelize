@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op, WhereOptions } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import { RankClassic } from 'src/constants/enums/rank.enum';
-import { Rank } from 'src/database';
+import { Rank, User } from 'src/database';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { CreateRankDto } from './dto/create-rank.dto';
@@ -13,6 +14,9 @@ export class RankService {
   constructor(
     @InjectModel(Rank)
     private readonly rankModel: typeof Rank,
+    @InjectModel(User)
+    private readonly userModel: typeof User,
+    private readonly sequelize: Sequelize,
   ) {}
 
   async create(createRankDto: CreateRankDto): Promise<Rank> {
@@ -25,6 +29,26 @@ export class RankService {
         percentagePoints: createRankDto.percentagePoints,
         maxPercentagePoints: createRankDto.maxPercentagePoints,
       });
+
+      const users = await this.userModel.findAll({
+        where: { isActive: true },
+      });
+
+      for (const user of users) {
+        const userPoints = user.pointsEarned;
+
+        const closetRank = await this.rankModel.findOne({
+          where: { requiredPoints: { [Op.lte]: userPoints } },
+          order: [['requiredPoints', 'DESC']],
+        });
+        if (closetRank && closetRank.id !== user.rankId) {
+          await this.userModel.update(
+            { rankId: closetRank.id },
+            { where: { id: user.id } },
+          );
+        }
+      }
+
       return rank;
     } catch (error) {
       throw new BadRequestException(`Failed to create rank: ${error.message}`);
@@ -145,21 +169,42 @@ export class RankService {
       if (!rank) {
         throw new NotFoundException(`Rank with id ${id} not found`);
       }
-  
+
       if (updateRankDto.name) {
         const existingRank = await this.rankModel.findOne({
           where: { name: updateRankDto.name },
         });
-  
+
         if (existingRank && existingRank.id !== parseInt(id)) {
           throw new BadRequestException(
             `Rank with name '${updateRankDto.name}' already exists`,
           );
         }
       }
-  
+
       await this.rankModel.update(updateRankDto, { where: { id } });
-      
+
+      const users = await this.userModel.findAll({
+        where: { isActive: true },
+      });
+
+      for (const user of users) {
+        const userPoints = user.pointsEarned;
+
+        const closetRank = await this.rankModel.findOne({
+          where: { requiredPoints: { [Op.lte]: userPoints } },
+          order: [['requiredPoints', 'DESC']],
+        });
+        if (closetRank && closetRank.id !== user.rankId) {
+          await this.userModel.update(
+            {
+              rankId: closetRank.id,
+            },
+            { where: { id: user.id } },
+          );
+        }
+      }
+
       const updatedRank = this.rankModel.findOne({ where: { id } });
       return updatedRank;
     } catch (error) {
@@ -174,8 +219,36 @@ export class RankService {
         throw new NotFoundException(`Rank with id ${id} not found`);
       }
 
-      if(rank.name === RankClassic.BRONZE || rank.name === RankClassic.SLIVER || rank.name === RankClassic.GOLD) {
+      if (
+        rank.name === RankClassic.BRONZE ||
+        rank.name === RankClassic.SLIVER ||
+        rank.name === RankClassic.GOLD
+      ) {
         throw new NotFoundException(`Cannot delete the Classic Rank`);
+      }
+
+      const users = await this.userModel.findAll({
+        where: { rankId: id, isActive: true },
+      });
+
+      for (const user of users) {
+        const userPoints = user.pointsEarned;
+
+        const closetRank = await this.rankModel.findOne({
+          where: {
+            requiredPoints: { [Op.lte]: userPoints },
+            id: { [Op.ne]: id },
+          },
+          order: [['requiredPoints', 'DESC']],
+        });
+        if (closetRank && closetRank.id !== user.rankId) {
+          await this.userModel.update(
+            {
+              rankId: closetRank.id,
+            },
+            { where: { id: user.id } },
+          );
+        }
       }
 
       await this.rankModel.destroy({ where: { id } });
