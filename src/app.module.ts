@@ -7,13 +7,12 @@ import { AppController } from './app.controller';
 import {
   PostgresqlModule,
   Rank,
+  Redemption,
   Reward,
   Store,
   StoreUser,
   Transaction,
-  TransactionReward,
   User,
-  UserReward,
 } from './database';
 import { IoRedisModule, UploadsModule, UsersModule } from './modules';
 import { AuthModule } from './modules/auth/auth.module';
@@ -22,9 +21,8 @@ import { RewardsModule } from './modules/rewards/rewards.module';
 import { StoresModule } from './modules/stores/stores.module';
 import { StoresUsersModule } from './modules/stores_users/stores_users.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
-import { TransactionRewardsModule } from './modules/transaction_rewards/transaction_rewards.module';
-import { UsersRewardsModule } from './modules/users_rewards/users_rewards.module';
 import { TwilioModule } from './utils/twilio/twilio.module';
+import { RedemptionModule } from './modules/redemption/redemption.module';
 
 @Module({
   imports: [
@@ -50,16 +48,7 @@ import { TwilioModule } from './utils/twilio/twilio.module';
         database: process.env.POSTGRES_DATABASE,
         synchronize: false,
         autoLoadModels: true,
-        models: [
-          User,
-          Rank,
-          Store,
-          Reward,
-          StoreUser,
-          UserReward,
-          Transaction,
-          TransactionReward,
-        ],
+        models: [User, Rank, Store, Reward, StoreUser, Transaction, Redemption],
       }),
     }),
     IoRedisModule,
@@ -70,11 +59,10 @@ import { TwilioModule } from './utils/twilio/twilio.module';
     StoresModule,
     RewardsModule,
     StoresUsersModule,
-    UsersRewardsModule,
     TransactionModule,
-    TransactionRewardsModule,
     AuthModule,
     TwilioModule,
+    RedemptionModule
   ],
   controllers: [AppController],
   providers: [],

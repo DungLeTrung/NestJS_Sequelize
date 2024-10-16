@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -8,13 +9,14 @@ import {
 
 import { Reward } from './reward.model';
 import { User } from './users.model';
+import { Store } from './stores.model';
 
 @Table({
-  tableName: 'user_rewards',
+  tableName: 'redemption',
   underscored: true,
   timestamps: true,
 })
-export class UserReward extends Model {
+export class Redemption extends Model {
   @Column({
     primaryKey: true,
     autoIncrement: true,
@@ -25,30 +27,42 @@ export class UserReward extends Model {
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,
+    allowNull: false,
   })
   userId: number;
 
   @ForeignKey(() => Reward)
   @Column({
     type: DataType.INTEGER,
+    allowNull: false,
   })
   rewardId: number;
 
+  @ForeignKey(() => Store)
   @Column({
-    type: DataType.STRING(255),
+    type: DataType.INTEGER,
     allowNull: false,
   })
-  rewardName: string;
+  storeId: number;
 
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
   })
-  rewardPoint: number;
+  quantity: number;
 
   @Column({
-    type: DataType.DATE,
+    type: DataType.INTEGER,
     allowNull: false,
   })
-  redeemedAt: Date;
+  pointRewards: number;
+
+  @BelongsTo(() => User)
+  user: User;
+
+  @BelongsTo(() => Reward)
+  reward: Reward;
+
+  @BelongsTo(() => Store)
+  store: Store;
 }

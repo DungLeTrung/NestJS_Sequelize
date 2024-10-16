@@ -40,7 +40,7 @@ export class UsersService {
       }
 
       await this.userModel.update(
-        { isActive: true, otpCode: null, expiredAt: null },
+        { isVerify: true, otpCode: null, expiredAt: null },
         { where: { phoneNumber } },
       );
 
@@ -64,16 +64,14 @@ export class UsersService {
         throw new BadRequestException('User not found');
       }
 
-      if (user.isActive) {
+      if (user.isVerify) {
         throw new BadRequestException(
-          'Account is already active, no need to send OTP',
+          'Account is already verify, no need to send OTP',
         );
       }
 
       const { otpCode, expiredAt } = generateOtpCode();
 
-      user.otpCode = otpCode;
-      user.expiredAt = expiredAt;
       await this.userModel.update({ otpCode, expiredAt }, { where: { email } });
 
       const updatedUser = await this.userModel.findOne({
@@ -241,6 +239,32 @@ export class UsersService {
       return `User with id ${id} has been deleted successfully`;
     } catch (error) {
       throw new BadRequestException(`Failed to delete user: ${error.message}`);
+    }
+  }
+
+  async activeUser(id: number): Promise<User> {
+    try {
+      const user = await this.userModel.findOne({ where: { id } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const newIsActiveStatus = !user.isActive;
+
+      
+      await this.userModel.update(
+        { isActive: newIsActiveStatus },
+        { where: { id } },
+      );
+
+      return await this.userModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to active/deactive user: ${error.message}`,
+      );
     }
   }
 }

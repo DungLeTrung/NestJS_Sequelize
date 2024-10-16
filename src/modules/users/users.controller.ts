@@ -73,6 +73,14 @@ export class UsersController {
     return await this.usersService.findById(id);
   }
 
+  @ApiOperation({ summary: 'API Active Store' })
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('active-user/:id')
+  async activeUser(@Param('id') id: number): Promise<User> {
+    return this.usersService.activeUser(id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Put(':userId')
   @HttpCode(201)

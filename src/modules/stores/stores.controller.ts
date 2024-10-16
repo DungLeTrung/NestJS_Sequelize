@@ -60,9 +60,17 @@ export class StoresController {
   @ApiOperation({ summary: 'API Approve Store' })
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)
-  @Post('approve-store')
+  @Post('approve-store/:id')
   async approveStore(@Param('id') id: number): Promise<Store> {
     return this.storesService.approveStore(id);
+  }
+
+  @ApiOperation({ summary: 'API Active Store' })
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('active-store/:id')
+  async activeStore(@Param('id') id: number): Promise<Store> {
+    return this.storesService.activeStore(id);
   }
 
   @Get(':id')

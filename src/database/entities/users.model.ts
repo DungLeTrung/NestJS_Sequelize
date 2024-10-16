@@ -11,14 +11,9 @@ import {
 } from 'sequelize-typescript';
 import { UserRole } from 'src/constants';
 
-import {
-  Rank,
-  Reward,
-  Store,
-  StoreUser,
-  Transaction,
-  UserReward,
-} from './index';
+import { Redemption } from './redemption.model';
+
+import { Rank, Store, StoreUser, Transaction } from './index';
 
 @Table({
   tableName: 'users',
@@ -78,11 +73,17 @@ export class User extends Model {
   })
   pointsEarned: number;
 
-  @Default(false)
+  @Default(true)
   @Column({
     type: DataType.BOOLEAN,
   })
   isActive: boolean;
+
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  isVerify: boolean;
 
   @Column({
     type: DataType.STRING(255),
@@ -110,11 +111,11 @@ export class User extends Model {
   @BelongsToMany(() => Store, () => StoreUser)
   stores: Store[];
 
-  @BelongsToMany(() => Reward, () => UserReward)
-  rewards: Reward[];
-
   @HasMany(() => Transaction)
   transactions: Transaction[];
+
+  @HasMany(() => Redemption)
+  redemptions: Redemption[];
 
   toJSON() {
     const values = { ...this.get() };

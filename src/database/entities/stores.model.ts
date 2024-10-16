@@ -8,6 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 
+import { Redemption } from './redemption.model';
 import { Reward } from './reward.model';
 import { StoreUser } from './stores_users.model';
 import { Transaction } from './transaction.model';
@@ -39,11 +40,17 @@ export class Store extends Model {
   })
   isApproved: boolean;
 
-  @Default(false)
+  @Default(true)
   @Column({
     type: DataType.BOOLEAN,
   })
   isActive: boolean;
+
+  @Default(false)
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  isVerify: boolean;
 
   @Column({
     type: DataType.STRING(255),
@@ -84,4 +91,7 @@ export class Store extends Model {
 
   @HasMany(() => Transaction)
   transactions: Transaction[];
+
+  @HasMany(() => Redemption)
+  redemptions: Redemption[];
 }

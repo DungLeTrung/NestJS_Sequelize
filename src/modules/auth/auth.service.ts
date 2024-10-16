@@ -62,6 +62,7 @@ export class AuthService {
         lastName,
         role: UserRole.ADMIN,
         isActive: true,
+        isVerify: true
       });
 
       return adminUser;
@@ -92,7 +93,6 @@ export class AuthService {
       const lowerRank = listRanks[0];
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const { otpCode, expiredAt } = generateOtpCode();
 
       await this.userModel.create({
         username,
@@ -101,16 +101,9 @@ export class AuthService {
         password: hashedPassword,
         firstName,
         lastName,
-        otpCode,
         rankId: lowerRank.id,
-        expiredAt,
-        isActive: false,
-      });
-
-      await SendEmailHelper.sendOTP({
-        to: email,
-        subject: 'Your OTP Code',
-        OTP: otpCode,
+        isActive: true,
+        isVerify: false
       });
 
       return await this.userModel.findOne({
@@ -139,22 +132,14 @@ export class AuthService {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const { otpCode, expiredAt } = generateOtpCode();
 
       await this.storeModel.create({
         name,
         email,
         password: hashedPassword,
-        otpCode,
-        expiredAt,
         isApproved: false,
-        isActive: false,
-      });
-
-      await SendEmailHelper.sendOTP({
-        to: email,
-        subject: 'Your OTP Code',
-        OTP: otpCode,
+        isVerify: false,
+        isActive: true
       });
 
       return await this.storeModel.findOne({
@@ -173,7 +158,7 @@ export class AuthService {
       const { phoneNumber, password } = body;
 
       const user = await this.userModel.findOne({
-        where: { phoneNumber, isActive: true },
+        where: { phoneNumber, isVerify: true, isActive: true},
       });
 
       if (!user) {
@@ -198,7 +183,7 @@ export class AuthService {
       });
 
       const userSecure = await this.userModel.findOne({
-        where: { phoneNumber, isActive: true },
+        where: { phoneNumber, isActive: true, isVerify: true },
         attributes: { exclude: ['password'] },
       });
 
@@ -217,7 +202,7 @@ export class AuthService {
       const { email, password } = body;
 
       const store = await this.storeModel.findOne({
-        where: { email, isApproved: true, isActive: true },
+        where: { email, isApproved: true, isVerify: true, isActive: true },
       });
 
       if (!store) {
@@ -242,7 +227,7 @@ export class AuthService {
       });
 
       const storeSecure = await this.storeModel.findOne({
-        where: { email, isApproved: true, isActive: true },
+        where: { email, isApproved: true, isVerify: true, isActive: true  },
         attributes: { exclude: ['password'] },
       });
 
