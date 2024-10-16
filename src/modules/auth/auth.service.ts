@@ -12,7 +12,6 @@ import {
   refreshTime,
   refreshTokenCode,
 } from 'src/constants/enums/const';
-import { RankClassic } from 'src/constants/enums/rank.enum';
 import { Rank, Store, User } from 'src/database';
 import {
   AuthStoreResponse,
@@ -86,15 +85,11 @@ export class AuthService {
         throw new BadRequestException('User already in exist');
       }
 
-      const bronzeRank = await this.rankModel.findOne({
-        where: { name: RankClassic.BRONZE },
+      const listRanks = await this.rankModel.findAll({
+        order: [['requiredPoints', 'ASC']],
       });
-      
-      if (!bronzeRank) {
-        throw new BadRequestException(
-          'The initial Classic Rank must be Bronze',
-        );
-      }
+
+      const lowerRank = listRanks[0];
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const { otpCode, expiredAt } = generateOtpCode();
@@ -107,7 +102,7 @@ export class AuthService {
         firstName,
         lastName,
         otpCode,
-        rankId: bronzeRank.id,
+        rankId: lowerRank.id,
         expiredAt,
         isActive: false,
       });

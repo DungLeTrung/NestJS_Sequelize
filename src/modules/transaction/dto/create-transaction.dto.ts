@@ -1,4 +1,4 @@
-import {IsNumber, IsInt, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsNumber } from 'class-validator';
 import { PointType } from 'src/constants/enums/point.enum';
 
 export class CreateTransactionDto {
@@ -15,6 +15,6 @@ export class CreateTransactionDto {
   totalPayment: number;
 
   @IsNotEmpty()
-  @IsEnum(PointType) 
+  @IsEnum(PointType, { message: 'Types must be a CLASSIC or a PERCENTAGE' })
   pointType: PointType;
 }

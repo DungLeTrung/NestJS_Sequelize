@@ -7,7 +7,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Queue } from 'bull';
 import { Op, WhereOptions } from 'sequelize';
-import { Reward, Store } from 'src/database';
+import { Store } from 'src/database';
 import { SendEmailHelper } from 'src/utils';
 import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 import { generateOtpCode } from 'src/utils/otp/otp.util';
@@ -102,7 +102,7 @@ export class StoresService {
     }
   }
 
-  async approveStore(storeId: string): Promise<Store> {
+  async approveStore(storeId: number): Promise<Store> {
     try {
       const store = await this.storeModel.findOne({ where: { id: storeId } });
       if (!store) {
@@ -125,18 +125,17 @@ export class StoresService {
     }
   }
 
-  async findById(id: string): Promise<Store> {
+  async findById(id: number): Promise<Store> {
     try {
-      const store = await this.storeModel.findOne({ where: { id } });
+      const store = await this.storeModel.findOne({
+        where: { id },
+        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
+      });
       if (!store) {
         throw new NotFoundException('Store not found');
       }
 
-      const secureStore = await this.storeModel.findOne({
-        where: { id },
-        attributes: { exclude: ['password', 'otpCode', 'expiredAt'] },
-      });
-      return secureStore;
+      return store;
     } catch (error) {
       throw new BadRequestException(`Can not find store: ${error.message}`);
     }
@@ -215,7 +214,7 @@ export class StoresService {
     }
   }
 
-  async delete(id: string): Promise<string> {
+  async delete(id: number): Promise<string> {
     try {
       const store = await this.storeModel.findOne({ where: { id } });
       if (!store) {
@@ -231,7 +230,7 @@ export class StoresService {
   }
 
   async update(
-    storeId: string,
+    storeId: number,
     updateStoreDto: UpdateStoreDto,
     id: number,
   ): Promise<Store> {

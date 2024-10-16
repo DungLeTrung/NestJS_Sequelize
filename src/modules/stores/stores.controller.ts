@@ -61,14 +61,14 @@ export class StoresController {
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)
   @Post('approve-store')
-  async approveStore(@Body('id') id: string): Promise<Store> {
+  async approveStore(@Param('id') id: number): Promise<Store> {
     return this.storesService.approveStore(id);
   }
 
   @Get(':id')
   @HttpCode(201)
   @ResponseMessage('GET STORE BY ID')
-  async getUserById(@Param('id') id: string): Promise<Store> {
+  async getUserById(@Param('id') id: number): Promise<Store> {
     return await this.storesService.findById(id);
   }
 
@@ -86,7 +86,7 @@ export class StoresController {
   @Roles(UserRole.ADMIN)
   @HttpCode(201)
   @ResponseMessage('DELETE STORE')
-  async delete(@Param('id') id: string): Promise<string> {
+  async delete(@Param('id') id: number): Promise<string> {
     return await this.storesService.delete(id);
   }
 
@@ -95,7 +95,7 @@ export class StoresController {
   @HttpCode(201)
   @ResponseMessage('UPDATE STORE')
   async updateStore(
-    @Param('storeId') storeId: string,
+    @Param('storeId') storeId: number,
     @Body() updateStoreDto: UpdateStoreDto,
     @Req() req: CustomStoreRequest,
   ): Promise<Store> {

@@ -55,7 +55,7 @@ export class RewardsService {
 
       const rewards = store.rewards || [];
 
-      rewards.push(reward.id.toString());
+      rewards.push(reward.id);
 
       store.rewards = rewards;
 
@@ -167,7 +167,7 @@ export class RewardsService {
     }
   }
 
-  async findById(id: string): Promise<Reward> {
+  async findById(id: number): Promise<Reward> {
     try {
       const reward = await this.rewardModel.findOne({
         where: { id },
@@ -214,9 +214,8 @@ export class RewardsService {
 
       if (store) {
         if (store.rewards) {
-
           const updatedRewards = store.rewards.filter(
-            (rewardId) => +rewardId != reward.id, 
+            (rewardId) => +rewardId != reward.id,
           );
 
           await this.storeModel.update(
@@ -237,7 +236,7 @@ export class RewardsService {
   }
 
   async update(
-    id: string,
+    id: number,
     updateRewardDto: UpdateRewardDto,
     storeId: number,
   ): Promise<Reward> {
@@ -252,14 +251,14 @@ export class RewardsService {
         const existingReward = await this.rewardModel.findOne({
           where: { name: updateRewardDto.name },
         });
-  
-        if (existingReward && existingReward.id !== parseInt(id)) {
+
+        if (existingReward && existingReward.id !== id) {
           throw new BadRequestException(
             `Reward with name '${updateRewardDto.name}' already exists`,
           );
         }
       }
-  
+
       if (!(reward.storeId == storeId)) {
         throw new NotFoundException(`Store is not permission`);
       }
@@ -272,7 +271,9 @@ export class RewardsService {
 
       return updatedReward;
     } catch (error) {
-      throw new BadRequestException(`Failed to update reward: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to update reward: ${error.message}`,
+      );
     }
   }
 }

@@ -20,14 +20,15 @@ export class RankService {
   ) {}
 
   async create(createRankDto: CreateRankDto): Promise<Rank> {
+    const {name, requiredPoints, amount, fixedPoints, percentagePoints, maxPercentagePoints} = createRankDto;
     try {
       const rank = await this.rankModel.create({
-        name: createRankDto.name,
-        requiredPoints: createRankDto.requiredPoints,
-        amount: createRankDto.amount,
-        fixedPoints: createRankDto.fixedPoints,
-        percentagePoints: createRankDto.percentagePoints,
-        maxPercentagePoints: createRankDto.maxPercentagePoints,
+        name,
+        requiredPoints,
+        amount,
+        fixedPoints,
+        percentagePoints,
+        maxPercentagePoints,
       });
 
       const users = await this.userModel.findAll({
@@ -150,7 +151,7 @@ export class RankService {
     }
   }
 
-  async findById(id: string): Promise<Rank> {
+  async findById(id: number): Promise<Rank> {
     try {
       const rank = await this.rankModel.findOne({ where: { id } });
       if (!rank) {
@@ -163,7 +164,7 @@ export class RankService {
     }
   }
 
-  async update(id: string, updateRankDto: UpdateRankDto): Promise<Rank> {
+  async update(id: number, updateRankDto: UpdateRankDto): Promise<Rank> {
     try {
       const rank = await this.rankModel.findOne({ where: { id } });
       if (!rank) {
@@ -175,7 +176,7 @@ export class RankService {
           where: { name: updateRankDto.name },
         });
 
-        if (existingRank && existingRank.id !== parseInt(id)) {
+        if (existingRank && existingRank.id !== id) {
           throw new BadRequestException(
             `Rank with name '${updateRankDto.name}' already exists`,
           );
@@ -212,7 +213,7 @@ export class RankService {
     }
   }
 
-  async delete(id: string): Promise<string> {
+  async delete(id: number): Promise<string> {
     try {
       const rank = await this.rankModel.findOne({ where: { id } });
       if (!rank) {

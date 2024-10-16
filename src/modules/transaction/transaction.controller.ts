@@ -65,13 +65,4 @@ export class TransactionController {
       paginateDto,
     );
   }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @Roles(UserRole.ADMIN)
-  @HttpCode(201)
-  @ResponseMessage('DELETE TRANSACTION')
-  async delete(@Param('id') id: string): Promise<string> {
-    return await this.transactionService.delete(id);
-  }
 }

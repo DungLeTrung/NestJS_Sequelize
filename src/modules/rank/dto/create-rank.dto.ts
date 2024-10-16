@@ -10,22 +10,22 @@ export class CreateRankDto {
   @Min(0)
   requiredPoints: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
   @Min(0)
   amount?: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
   @Min(0)
   fixedPoints?: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
   @Min(0)
   percentagePoints?: number;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
   @Min(0)
   maxPercentagePoints?: number;

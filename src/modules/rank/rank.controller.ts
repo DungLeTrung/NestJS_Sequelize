@@ -46,7 +46,7 @@ export class RankController {
   @Get(':id')
   @HttpCode(201)
   @ResponseMessage('GET RANK BY ID')
-  async getRankById(@Param('id') id: string): Promise<Rank> {
+  async getRankById(@Param('id') id: number): Promise<Rank> {
     return await this.rankService.findById(id);
   }
 
@@ -56,7 +56,7 @@ export class RankController {
   @HttpCode(201)
   @ResponseMessage('UPDATE RANK')
   async updateRank(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateRankDto: UpdateRankDto,
   ) {
     return await this.rankService.update(id, updateRankDto);
@@ -67,7 +67,7 @@ export class RankController {
   @Roles(UserRole.ADMIN)
   @HttpCode(201)
   @ResponseMessage('DELETE RANK')
-  async delete(@Param('id') id: string): Promise<string> {
+  async delete(@Param('id') id: number): Promise<string> {
     return await this.rankService.delete(id);
   }
 }

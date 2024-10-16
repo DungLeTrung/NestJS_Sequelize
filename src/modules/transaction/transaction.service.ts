@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op, WhereOptions } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
@@ -47,15 +43,6 @@ export class TransactionService {
         throw new BadRequestException('Store not found');
       }
 
-      if (
-        pointType !== PointType.CLASSIC &&
-        pointType !== PointType.PERCENTAGE
-      ) {
-        throw new BadRequestException(
-          'Types must be a CLASSIC or a PERCENTAGE',
-        );
-      }
-
       const rank = await this.rankModel.findOne({
         where: { id: user.rankId },
         transaction,
@@ -90,38 +77,44 @@ export class TransactionService {
         );
       }
 
-      if (pointType === PointType.CLASSIC) {
-        const ranksPoints = await this.rankModel.findAll({
-          order: [['requiredPoints', 'ASC']],
-        });
-        let pointsRate = 0;
+      const listRanks = await this.rankModel.findAll({
+        order: [['requiredPoints', 'ASC']],
+      });
 
-        for (const rank of ranksPoints) {
-          if (user.rankId === rank.id) {
-            pointsRate = rank.fixedPoints;
-            break;
+      let pointsEarned = 0;
+
+      for (const rank of listRanks) {
+        if (user.rankId === rank.id) {
+          if (pointType === PointType.CLASSIC) {
+            const pointsRate = rank.fixedPoints;
+            pointsEarned = Math.floor(totalPayment / rank?.amount) * pointsRate;
+          } else if (pointType === PointType.PERCENTAGE) {
+            const pointsPercentage = rank.percentagePoints;
+            const maxPoints = rank.maxPercentagePoints;
+            pointsEarned = Math.min(
+              Math.floor((totalPayment / 1000) * (pointsPercentage / 100)),
+              maxPoints,
+            );
           }
+          break;
         }
+      }
 
-        const pointsEarned =
-          Math.floor(totalPayment / rank?.amount) * pointsRate;
-
-        if (user) {
-          user.pointsEarned += pointsEarned;
-          await this.userModel.update(
-            { pointsEarned: user.pointsEarned },
-            { where: { id: user.id }, transaction },
-          );
-        } else {
-          await this.userModel.create(
-            {
-              userId: userId,
-              transactionId: newTransaction.id,
-              pointsEarned: pointsEarned,
-            },
-            { transaction },
-          );
-        }
+      if (user) {
+        user.pointsEarned += pointsEarned;
+        await this.userModel.update(
+          { pointsEarned: user.pointsEarned },
+          { where: { id: user.id }, transaction },
+        );
+      } else {
+        await this.userModel.create(
+          {
+            userId: userId,
+            transactionId: newTransaction.id,
+            pointsEarned: pointsEarned,
+          },
+          { transaction },
+        );
       }
 
       const ranks = await this.rankModel.findAll({
@@ -133,7 +126,6 @@ export class TransactionService {
           await this.userModel.update(
             { rankId: rank.id },
             { where: { id: userId }, transaction },
-            
           );
         }
       }
@@ -349,25 +341,6 @@ export class TransactionService {
       };
     } catch (error) {
       throw new BadRequestException(`Error in findAll: ${error.message}`);
-    }
-  }
-
-  async delete(id: string): Promise<string> {
-    try {
-      const transaction = await this.transactionModel.findOne({
-        where: { id },
-      });
-      if (!transaction) {
-        throw new NotFoundException(`Transaction with id ${id} not found`);
-      }
-
-      await this.transactionModel.destroy({ where: { id } });
-
-      return `Transaction with id ${id} has been deleted successfully`;
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to delete transaction: ${error.message}`,
-      );
     }
   }
 }

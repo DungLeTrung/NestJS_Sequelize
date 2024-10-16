@@ -56,7 +56,7 @@ export class RewardsController {
   @Get(':id')
   @HttpCode(201)
   @ResponseMessage('GET REWARD BY ID')
-  async getRankById(@Param('id') id: string): Promise<Reward> {
+  async getRankById(@Param('id') id: number): Promise<Reward> {
     return await this.rewardsService.findById(id);
   }
 
@@ -79,7 +79,7 @@ export class RewardsController {
   @ResponseMessage('UPDATE REWARD')
   async updateRank(
     @UploadedFile() file: Express.Multer.File,
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateRewardDto: UpdateRewardDto,
     @Req() req: CustomStoreRequest,
   ) {
