@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { SequelizeModule } from '@nestjs/sequelize';
 import ms from 'ms';
 import { accessTime, accessTokenCode } from 'src/constants/enums/const';
-import { Store, User } from 'src/database';
+import { Rank, Store, User } from 'src/database';
 import { MailProcessor } from 'src/utils/mail/mail.processor';
 import { MailService } from 'src/utils/mail/mail.service';
 
@@ -14,12 +14,15 @@ import { UsersModule, UsersService } from '../users';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtStoreAuthGuard } from './jwt-store.guard';
+import { JwtStoreStrategy } from './passport/jwt-store.strategy';
 import { JwtStrategy } from './passport/jwt.strategy';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User, Store]), 
-    UsersModule, StoresModule,
+    SequelizeModule.forFeature([User, Store, Rank]),
+    UsersModule,
+    StoresModule,
     BullModule.registerQueue({
       name: 'mail',
     }),
@@ -41,6 +44,8 @@ import { JwtStrategy } from './passport/jwt.strategy';
     JwtStrategy,
     UsersService,
     StoresService,
+    JwtStoreAuthGuard,
+    JwtStoreStrategy,
   ],
   exports: [AuthService, SequelizeModule],
 })

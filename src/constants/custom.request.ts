@@ -1,6 +1,10 @@
 import { Request } from 'express';
-import { User } from 'src/database';
+import { Store, User } from 'src/database';
 
 export interface CustomRequest extends Request {
-  user: User
+  user?: User
+}
+
+export interface CustomStoreRequest extends Request {
+  store: Store
 }

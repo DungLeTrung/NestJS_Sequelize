@@ -62,7 +62,7 @@ export class Store extends Model {
     type: DataType.ARRAY(DataType.INTEGER),
     allowNull: true,
   })
-  rewards: string[];
+  rewards: number[];
 
   @Column({
     type: DataType.STRING(255),

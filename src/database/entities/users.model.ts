@@ -17,8 +17,6 @@ import {
   Store,
   StoreUser,
   Transaction,
-  UserPointsHistory,
-  UserRankHistory,
   UserReward,
 } from './index';
 
@@ -30,7 +28,7 @@ import {
 export class User extends Model {
   @Column({
     primaryKey: true,
-    autoIncrement: true, 
+    autoIncrement: true,
     type: DataType.INTEGER,
   })
   id: number;
@@ -74,6 +72,12 @@ export class User extends Model {
   })
   rankId: number;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+  })
+  pointsEarned: number;
+
   @Default(false)
   @Column({
     type: DataType.BOOLEAN,
@@ -109,18 +113,12 @@ export class User extends Model {
   @BelongsToMany(() => Reward, () => UserReward)
   rewards: Reward[];
 
-  @HasMany(() => UserRankHistory)
-  rankHistories: UserRankHistory[];
-
-  @HasMany(() => UserPointsHistory)
-  pointsHistory: UserPointsHistory[];
-
   @HasMany(() => Transaction)
   transactions: Transaction[];
 
   toJSON() {
     const values = { ...this.get() };
-    delete values.password; 
+    delete values.password;
     return values;
   }
 }

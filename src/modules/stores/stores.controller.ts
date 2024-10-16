@@ -1,12 +1,28 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { UserRole } from 'src/constants';
+import { CustomStoreRequest } from 'src/constants/custom.request';
 import { Store } from 'src/database';
-import { Roles } from 'src/utils/decorators/customize';
+import { ResponseMessage, Roles } from 'src/utils/decorators/customize';
+import { PaginatedResult, PaginateDto } from 'src/utils/decorators/paginate';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtStoreAuthGuard } from '../auth/jwt-store.guard';
 
 import { SendOtpDto } from './dto/send_otp.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StoresService } from './stores.service';
 
@@ -45,7 +61,45 @@ export class StoresController {
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)
   @Post('approve-store')
-  async approveStore(@Body('id') id: string): Promise<Store> {
+  async approveStore(@Param('id') id: number): Promise<Store> {
     return this.storesService.approveStore(id);
+  }
+
+  @Get(':id')
+  @HttpCode(201)
+  @ResponseMessage('GET STORE BY ID')
+  async getUserById(@Param('id') id: number): Promise<Store> {
+    return await this.storesService.findById(id);
+  }
+
+  @Get()
+  @HttpCode(201)
+  @ResponseMessage('LIST STORES')
+  async getAll(
+    @Query() paginateDto: PaginateDto,
+  ): Promise<PaginatedResult<Store>> {
+    return await this.storesService.getAll(paginateDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  @HttpCode(201)
+  @ResponseMessage('DELETE STORE')
+  async delete(@Param('id') id: number): Promise<string> {
+    return await this.storesService.delete(id);
+  }
+
+  @UseGuards(JwtStoreAuthGuard)
+  @Put(':storeId')
+  @HttpCode(201)
+  @ResponseMessage('UPDATE STORE')
+  async updateStore(
+    @Param('storeId') storeId: number,
+    @Body() updateStoreDto: UpdateStoreDto,
+    @Req() req: CustomStoreRequest,
+  ): Promise<Store> {
+    const { id } = req.store;
+    return await this.storesService.update(storeId, updateStoreDto, id);
   }
 }

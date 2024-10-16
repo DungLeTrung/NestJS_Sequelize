@@ -12,7 +12,7 @@ import {
   refreshTime,
   refreshTokenCode,
 } from 'src/constants/enums/const';
-import { Store, User } from 'src/database';
+import { Rank, Store, User } from 'src/database';
 import {
   AuthStoreResponse,
   AuthUserResponse,
@@ -31,6 +31,7 @@ export class AuthService {
   constructor(
     @InjectModel(User) private userModel: typeof User,
     @InjectModel(Store) private storeModel: typeof Store,
+    @InjectModel(Rank) private rankModel: typeof Rank,
     @InjectQueue('mail') private emailQueue: Queue,
     private readonly jwtService: JwtService,
   ) {}
@@ -84,6 +85,12 @@ export class AuthService {
         throw new BadRequestException('User already in exist');
       }
 
+      const listRanks = await this.rankModel.findAll({
+        order: [['requiredPoints', 'ASC']],
+      });
+
+      const lowerRank = listRanks[0];
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const { otpCode, expiredAt } = generateOtpCode();
 
@@ -95,6 +102,7 @@ export class AuthService {
         firstName,
         lastName,
         otpCode,
+        rankId: lowerRank.id,
         expiredAt,
         isActive: false,
       });
@@ -189,7 +197,7 @@ export class AuthService {
         expiresIn: refreshTime,
       });
 
-      const  userSecure = await this.userModel.findOne({
+      const userSecure = await this.userModel.findOne({
         where: { phoneNumber, isActive: true },
         attributes: { exclude: ['password'] },
       });
@@ -197,7 +205,7 @@ export class AuthService {
       return {
         accessToken,
         refreshToken,
-        user: userSecure
+        user: userSecure,
       };
     } catch (error) {
       throw new BadRequestException(`Failed to login user: ${error.message}`);
