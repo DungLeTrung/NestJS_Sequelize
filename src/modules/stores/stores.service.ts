@@ -99,9 +99,11 @@ export class StoresService {
 
   async approveStore(id: number): Promise<Store> {
     try {
-      const store = await this.storeModel.findOne({ where: { id } });
+      const store = await this.storeModel.findOne({
+        where: { id, isVerify: true },
+      });
       if (!store) {
-        throw new NotFoundException('Store not found');
+        throw new NotFoundException('Store must be verified!');
       }
 
       await this.storeModel.update(

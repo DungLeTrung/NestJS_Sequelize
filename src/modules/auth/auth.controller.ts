@@ -1,7 +1,7 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { Store, User } from 'src/database';
 import { ResponseMessage } from 'src/utils/decorators/customize';
-
 
 import { AuthService } from './auth.service';
 import { LoginWithEmailDto } from './dto/login-email.dto';
@@ -9,6 +9,7 @@ import { LoginWithPhoneDto } from './dto/login-phone.dto';
 import { CreateAdminDto } from './dto/register-admin.dto';
 import { RegisterStoreDto } from './dto/register-store.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { RefreshTokenDTO } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,12 +33,33 @@ export class AuthController {
   }
 
   @Post('login-user')
-  async loginWithPhone(@Body() loginWithPhoneDto: LoginWithPhoneDto) {
-    return this.authService.loginWithPhone(loginWithPhoneDto);
+  async loginWithPhone(
+    @Body() loginWithPhoneDto: LoginWithPhoneDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.loginWithPhone(loginWithPhoneDto, res);
   }
 
   @Post('login-store')
-  async loginWithEmail(@Body() loginWithEmailDto: LoginWithEmailDto) {
-    return this.authService.loginWithEmail(loginWithEmailDto);
+  async loginWithEmail(
+    @Body() loginWithEmailDto: LoginWithEmailDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.loginWithEmail(loginWithEmailDto, res);
+  }
+
+  // @Post('logout')
+  // async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  //   return await this.authService.logout(req, res);
+  // }
+
+  @Post('refresh-token-user')
+  async refreshTokenUser(@Body() refreshTokenDTO: RefreshTokenDTO,  @Res({ passthrough: true }) res: Response) {
+    return this.authService.refreshTokenUser(refreshTokenDTO, res);
+  }
+
+  @Post('refresh-token-store')
+  async refreshTokenStore(@Body() refreshTokenDTO: RefreshTokenDTO,  @Res({ passthrough: true }) res: Response) {
+    return this.authService.refreshTokenStore(refreshTokenDTO, res);
   }
 }
