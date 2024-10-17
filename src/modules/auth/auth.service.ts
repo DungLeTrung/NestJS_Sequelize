@@ -4,8 +4,10 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
 import { Queue } from 'bull';
+import { Response } from 'express';
 import { Op } from 'sequelize';
 import { UserRole } from 'src/constants';
+import { parseExpirationTime } from 'src/constants/date_cookie';
 import {
   accessTime,
   accessTokenCode,
@@ -17,11 +19,10 @@ import {
   AuthStoreResponse,
   AuthUserResponse,
 } from 'src/interfaces/auth.interface';
-import { SendEmailHelper } from 'src/utils';
-import { generateOtpCode } from 'src/utils/otp/otp.util';
 
 import { LoginWithEmailDto } from './dto/login-email.dto';
 import { LoginWithPhoneDto } from './dto/login-phone.dto';
+import { RefreshTokenDTO } from './dto/refresh-token.dto';
 import { CreateAdminDto } from './dto/register-admin.dto';
 import { RegisterStoreDto } from './dto/register-store.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -62,7 +63,7 @@ export class AuthService {
         lastName,
         role: UserRole.ADMIN,
         isActive: true,
-        isVerify: true
+        isVerify: true,
       });
 
       return adminUser;
@@ -103,7 +104,7 @@ export class AuthService {
         lastName,
         rankId: lowerRank.id,
         isActive: true,
-        isVerify: false
+        isVerify: false,
       });
 
       return await this.userModel.findOne({
@@ -139,7 +140,7 @@ export class AuthService {
         password: hashedPassword,
         isApproved: false,
         isVerify: false,
-        isActive: true
+        isActive: true,
       });
 
       return await this.storeModel.findOne({
@@ -153,12 +154,15 @@ export class AuthService {
     }
   }
 
-  async loginWithPhone(body: LoginWithPhoneDto): Promise<AuthUserResponse> {
+  async loginWithPhone(
+    body: LoginWithPhoneDto,
+    res: Response,
+  ): Promise<AuthUserResponse> {
     try {
       const { phoneNumber, password } = body;
 
       const user = await this.userModel.findOne({
-        where: { phoneNumber, isVerify: true, isActive: true},
+        where: { phoneNumber, isVerify: true, isActive: true },
       });
 
       if (!user) {
@@ -182,6 +186,13 @@ export class AuthService {
         expiresIn: refreshTime,
       });
 
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: parseExpirationTime(refreshTime),
+      });
+
       const userSecure = await this.userModel.findOne({
         where: { phoneNumber, isActive: true, isVerify: true },
         attributes: { exclude: ['password'] },
@@ -197,7 +208,10 @@ export class AuthService {
     }
   }
 
-  async loginWithEmail(body: LoginWithEmailDto): Promise<AuthStoreResponse> {
+  async loginWithEmail(
+    body: LoginWithEmailDto,
+    res: Response,
+  ): Promise<AuthStoreResponse> {
     try {
       const { email, password } = body;
 
@@ -226,8 +240,15 @@ export class AuthService {
         expiresIn: refreshTime,
       });
 
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: parseExpirationTime(refreshTime),
+      });
+
       const storeSecure = await this.storeModel.findOne({
-        where: { email, isApproved: true, isVerify: true, isActive: true  },
+        where: { email, isApproved: true, isVerify: true, isActive: true },
         attributes: { exclude: ['password'] },
       });
 
@@ -238,6 +259,121 @@ export class AuthService {
       };
     } catch (error) {
       throw new BadRequestException(`Failed to login user: ${error.message}`);
+    }
+  }
+
+  // async logout(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const refreshToken = req.cookies.refresh_token;
+
+  //     if (!refreshToken) {
+  //       throw new BadRequestException('Refresh token is required');
+  //     }
+
+  //     res.clearCookie('refresh_token');
+
+  //   } catch (error) {
+  //     throw new BadRequestException(`Can not logout: ${error.message}`);
+  //   }
+  // }
+
+  async refreshTokenUser(refreshTokenDTO: RefreshTokenDTO, res: Response): Promise<AuthUserResponse> {
+    try {
+      const payload = this.jwtService.verify(refreshTokenDTO.refreshToken, {
+        secret: refreshTokenCode,
+      });
+
+      const user = await this.userModel.findOne(
+        {where: {id: payload.sub}}
+      );
+      if (!user) {
+        throw new BadRequestException('Invalid refresh token');
+      }
+
+      const payloadNew = { email: user.email, role: user.role, sub: user.id };
+
+      const newAccessToken = this.jwtService.sign(payloadNew, {
+        secret: accessTokenCode,
+        expiresIn: accessTime,
+      });
+
+      const newRefreshToken = this.jwtService.sign(payloadNew, {
+        secret: refreshTokenCode,
+        expiresIn: refreshTime,
+      });
+
+      res.cookie('refresh_token', newRefreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: parseExpirationTime(refreshTime),
+      });
+
+      const userSecure = await this.userModel.findOne({
+        where: { id: payload.sub },
+        attributes: { exclude: ['password'] },
+      });
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        user: userSecure,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Refresh Token is not successfully',
+        error.message,
+      );
+    }
+  }
+
+  async refreshTokenStore(refreshTokenDTO: RefreshTokenDTO, res: Response): Promise<AuthStoreResponse> {
+    try {
+      const payload = this.jwtService.verify(refreshTokenDTO.refreshToken, {
+        secret: refreshTokenCode,
+      });
+
+      const store = await this.storeModel.findOne(
+        {where: {id: payload.sub}}
+      );
+      if (!store) {
+        throw new BadRequestException('Invalid refresh token');
+      }
+
+      const payloadNew = { email: store.email, sub: store.id };
+
+      const newAccessToken = this.jwtService.sign(payloadNew, {
+        secret: accessTokenCode,
+        expiresIn: accessTime,
+      });
+
+      const newRefreshToken = this.jwtService.sign(payloadNew, {
+        secret: refreshTokenCode,
+        expiresIn: refreshTime,
+      });
+
+      res.cookie('refresh_token', newRefreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: parseExpirationTime(refreshTime),
+      });
+
+      const storeSecure = await this.storeModel.findOne({
+        where: { id: payload.sub },
+        attributes: { exclude: ['password'] },
+      });
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        store: storeSecure,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Refresh Token is not successfully',
+        error.message,
+      );
     }
   }
 }

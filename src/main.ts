@@ -1,17 +1,14 @@
-import { join } from 'path';
-
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import { engine } from 'express-handlebars'; // Import the engine function
 import morgan from 'morgan';
 
 import { AppModule } from './app.module';
-import { application, swaggerConfig } from './configs';
-import { ENVS_ALLOW_DOCS } from './constants';
+import { application } from './configs';
 import { HttpExceptionFilter } from './utils/filters/http-exception.filter';
 import { TransformInterceptor } from './utils/interceptors/transform.interceptor';
 import { ValidationPipe } from './utils/pipes/validation.pipe';
@@ -42,8 +39,16 @@ async function bootstrap() {
   app.setGlobalPrefix(application.urlPrefix);
 
   // swagger
-  ENVS_ALLOW_DOCS.includes(application.environment) && swaggerConfig(app);
-  
+  const options = new DocumentBuilder()
+    .setTitle('API Documentation')
+    .setDescription('API description')
+    .setVersion('1.0')
+    .addTag('auth')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('api/docs', app, document);
+
   await app.listen(application.serverPort);
   console.log(`Application is running on ${application.serverPort}`);
 }

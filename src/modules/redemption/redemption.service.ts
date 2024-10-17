@@ -28,11 +28,19 @@ export class RedemptionService {
     try {
       const { rewardId, storeId, quantity } = createRedemptionDto;
 
-      const storeUser = await this.storeUserModel.findOne({
-        where: { userId, storeId },
+      const storeExist = await this.storeModel.findOne({
+        where: { id: storeId },
       });
-      if (!storeUser) {
-        throw new Error('User is not part of these store.');
+
+      if (!storeExist) {
+        throw new Error('Store not found.');
+      }
+
+      const reward = await this.rewardModel.findOne({
+        where: { id: rewardId, quantity: { [Op.gt]: 0 } },
+      });
+      if (!reward) {
+        throw new Error('Reward not found.');
       }
 
       const user = await this.userModel.findOne({
@@ -42,11 +50,11 @@ export class RedemptionService {
         throw new Error('User is not exist.');
       }
 
-      const reward = await this.rewardModel.findOne({
-        where: { id: rewardId, quantity: { [Op.gt]: 0 } },
+      const storeUser = await this.storeUserModel.findOne({
+        where: { userId, storeId },
       });
-      if (!reward) {
-        throw new Error('Reward not found.');
+      if (!storeUser) {
+        throw new Error('User is not part of these store.');
       }
 
       const store = await this.storeModel.findOne({
@@ -57,32 +65,40 @@ export class RedemptionService {
       });
 
       if (!store) {
-        throw new Error('Store not found.');
+        throw new Error('These rewards is not exist in the store.');
       }
 
       if (!store.rewards) {
         throw new Error('This store does not have the specified reward.');
       }
 
+      let redemption;
       const pointRewards = reward.pointsRequired * quantity;
 
-      const redemption = await this.redemptionModel.create({
-        userId,
-        rewardId,
-        storeId,
-        quantity,
-        pointRewards,
-      });
+      if(reward.quantity >= quantity && user.pointsEarned - pointRewards >= 0) {
 
-      await this.rewardModel.update(
-        { quantity: Math.max(reward.quantity - redemption.quantity, 0) },
-        { where: { id: rewardId } },
-      );
-
-      await this.userModel.update(
-        { pointsEarned: user.pointsEarned - redemption.pointRewards },
-        { where: { id: userId } },
-      );
+        redemption = await this.redemptionModel.create({
+          userId,
+          rewardId,
+          storeId,
+          quantity,
+          pointRewards,
+        });
+  
+        await this.rewardModel.update(
+          { quantity: Math.max(reward.quantity - redemption.quantity, 0) },
+          { where: { id: rewardId } },
+        );
+  
+        await this.userModel.update(
+          { pointsEarned: user.pointsEarned - redemption.pointRewards },
+          { where: { id: userId } },
+        );
+      } else {
+        throw new BadRequestException(
+          `Check quantity of rewards which have only ${reward.quantity} items OR you have only ${user.pointsEarned} within the rewards need up to ${pointRewards}`,
+        );
+      }
 
       return redemption;
     } catch (error) {
